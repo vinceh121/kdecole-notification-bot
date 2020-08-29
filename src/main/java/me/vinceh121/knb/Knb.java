@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +48,6 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 public class Knb {
 	private static final Logger LOG = LoggerFactory.getLogger(Knb.class);
@@ -90,7 +90,7 @@ public class Knb {
 
 		final JDABuilder build = JDABuilder.create(this.config.getToken(), Knb.INTENTS);
 		build.setMemberCachePolicy(MemberCachePolicy.NONE);
-		build.enableCache(Arrays.asList(CacheFlag.values()));
+		build.enableCache(Collections.emptyList());
 		build.setActivity(Activity.playing("with wierd APIs"));
 		try {
 			this.jda = build.build();

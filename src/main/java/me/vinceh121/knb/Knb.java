@@ -103,7 +103,7 @@ public class Knb {
 			throw new RuntimeException(e);
 		}
 
-		Knb.LOG.info("Connected to Discord. Ping: " + this.jda.getGatewayPing() + "ms");
+		Knb.LOG.info("Connected to Discord. Ping: {}ms", this.jda.getGatewayPing());
 
 		final CodecRegistry codecRegistry
 				= CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -179,7 +179,7 @@ public class Knb {
 			try {
 				success = this.kdecole.login(username, password, true);
 			} catch (final IOException e) {
-				Knb.LOG.error("Error while logging into kdecole for instance" + ui, e);
+				Knb.LOG.error("Error while logging into kdecole for instance " + ui.getId(), e);
 				return "Un erreur est survenue à la connection à l'ENT";
 			}
 

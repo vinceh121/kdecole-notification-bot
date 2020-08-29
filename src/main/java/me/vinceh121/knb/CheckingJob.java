@@ -35,7 +35,7 @@ public class CheckingJob implements Job {
 		try {
 			news = knb.getNewsForInstance(ui);
 		} catch (final Exception e) {
-			LOG.error("Error while gettin news for instance " + ui, e);
+			LOG.error("Error while gettin news for instance " + ui.getId(), e);
 			return;
 		}
 

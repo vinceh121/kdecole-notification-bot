@@ -43,6 +43,7 @@ import com.mongodb.client.model.Filters;
 
 import me.vinceh121.jkdecole.Article;
 import me.vinceh121.jkdecole.JKdecole;
+import me.vinceh121.jkdecole.messages.MessageInfoUtilisateur;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -53,11 +54,10 @@ public class Knb {
 	private static final Logger LOG = LoggerFactory.getLogger(Knb.class);
 	private static final Collection<GatewayIntent> INTENTS = Arrays.asList(GUILD_MESSAGES, DIRECT_MESSAGES);
 	private final ObjectMapper mapper;
-	private final JKdecole kdecole;
 	private final Config config;
 	private final Scheduler scheduler;
 	private final JDA jda;
-	private final RegistrationListener regisListener;
+	private final CommandListener regisListener;
 	private final MongoClient mongo;
 	private final MongoDatabase mongoDb;
 	private final JobDetail job;
@@ -122,9 +122,7 @@ public class Knb {
 		this.mongo = MongoClients.create(mongoSets);
 		this.mongoDb = this.mongo.getDatabase("knb");
 
-		this.kdecole = new JKdecole();
-
-		this.regisListener = new RegistrationListener(this);
+		this.regisListener = new CommandListener(this);
 
 		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
 	}
@@ -172,44 +170,50 @@ public class Knb {
 				.find(Filters.and(Filters.eq("stage", "REGISTERED"), Filters.exists("channelId")));
 	}
 
-	public CompletableFuture<String> setupUserInstance(final UserInstance ui, final String username,
+	public CompletableFuture<MessageInfoUtilisateur> setupUserInstance(final UserInstance ui, final String username,
 			final String password) {
 		return CompletableFuture.supplyAsync(() -> {
+			final JKdecole kdecole = getKdecole();
 			boolean success = false;
 			try {
-				success = this.kdecole.login(username, password, true);
+				success = kdecole.login(username, password, true);
 			} catch (final IOException e) {
 				Knb.LOG.error("Error while logging into kdecole for instance " + ui.getId(), e);
-				return "Un erreur est survenue à la connection à l'ENT";
+				throw new RuntimeException("Un erreur est survenue à la connection à l'ENT");
 			}
 
 			if (!success) {
 				LOG.error("Login error for instance " + ui);
-				return "La connection à l'ENT a échouée";
+				throw new RuntimeException("La connection à l'ENT a échouée");
 			}
 
-			ui.setKdecoleToken(this.kdecole.getToken());
-			ui.setEndpoint(this.kdecole.getEndpoint());
-			ui.setStage(Stage.CHANNEL);
+			ui.setKdecoleToken(kdecole.getToken());
+			ui.setEndpoint(kdecole.getEndpoint());
 
 			this.updateUserInstance(ui);
 
 			try {
-				return "Succés! La connection a réussit en tant que `"
-						+ this.kdecole.getInfoUtilisateur().getNom()
-						+ "`. Vous devez maintenant mentioner le bot dans le canal où vous voulez qu'il notifie. "
-						+ "Pour cela tapez `@Kdecole Bot#6747`";
+				/*
+				 * return "Succés! La connection a réussit en tant que `"
+				 * + this.kdecole.getInfoUtilisateur().getNom()
+				 * +
+				 * "`. Vous devez maintenant mentioner le bot dans le canal où vous voulez qu'il notifie. "
+				 * + "Pour cela tapez `@Kdecole Bot#6747`";
+				 */
+				return kdecole.getInfoUtilisateur();
 			} catch (final Exception e) {
 				Knb.LOG.error("Error while getting user info", e);
-				return "Il y a eu une erreur à la récupération des infos utilisateur, cependant le bot peut probablement fonctionner.";
+				throw new RuntimeException(
+						"Il y a eu une erreur à la récupération des infos utilisateur, cependant le bot peut probablement fonctionner.");
 			}
 		});
 	}
 
 	public List<Article> getNewsForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
-		this.kdecole.setToken(ui.getKdecoleToken());
-		this.kdecole.setEndpoint(ui.getEndpoint());
-		final List<Article> news = this.kdecole.getNews();
+		final JKdecole kdecole = getKdecole();
+		kdecole.setToken(ui.getKdecoleToken());
+		kdecole.setEndpoint(ui.getEndpoint());
+		final List<Article> news = kdecole.getNews();
 		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
 		final List<Article> newNews = new ArrayList<>();
 
@@ -223,6 +227,10 @@ public class Knb {
 
 	public void manualTriggerAll() throws SchedulerException {
 		this.scheduler.triggerJob(this.job.getKey());
+	}
+
+	private JKdecole getKdecole() {
+		return new JKdecole("Kdecole Notification Bot/0.0.1 (github.com/vinceh121/kdecole-notification-bot)");
 	}
 
 	public void shutdown() throws Exception {

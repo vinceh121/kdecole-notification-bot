@@ -6,9 +6,9 @@ import org.bson.types.ObjectId;
 
 public class UserInstance {
 	private ObjectId id;
-	private String kdecoleToken, adderId, guildId, channelId, endpoint;
-	private Stage stage;
-	private Date lastCheck;
+	private String kdecoleToken, adderId, channelId, endpoint;
+	private Date lastCheck = new Date(0L);
+	private boolean showWarnings = true, allowOthers = false;
 
 	public ObjectId getId() {
 		return this.id;
@@ -34,28 +34,12 @@ public class UserInstance {
 		this.adderId = adderId;
 	}
 
-	public String getGuildId() {
-		return this.guildId;
-	}
-
-	public void setGuildId(final String guildId) {
-		this.guildId = guildId;
-	}
-
 	public String getChannelId() {
 		return this.channelId;
 	}
 
 	public void setChannelId(final String channelId) {
 		this.channelId = channelId;
-	}
-
-	public Stage getStage() {
-		return this.stage;
-	}
-
-	public void setStage(final Stage stage) {
-		this.stage = stage;
 	}
 
 	public Date getLastCheck() {
@@ -74,16 +58,28 @@ public class UserInstance {
 		this.endpoint = endpoint;
 	}
 
+	public boolean isShowWarnings() {
+		return showWarnings;
+	}
+
+	public void setShowWarnings(final boolean showWarnings) {
+		this.showWarnings = showWarnings;
+	}
+
 	@Override
 	public String toString() {
-		return "UserInstance [kdecoleToken="
-				+ this.kdecoleToken
+		return "UserInstance [id="
+				+ id
+				+ ", kdecoleToken="
+				+ kdecoleToken
 				+ ", adderId="
-				+ this.adderId
-				+ ", guildId="
-				+ this.guildId
+				+ adderId
 				+ ", channelId="
-				+ this.channelId
+				+ channelId
+				+ ", endpoint="
+				+ endpoint
+				+ ", lastCheck="
+				+ lastCheck
 				+ "]";
 	}
 }

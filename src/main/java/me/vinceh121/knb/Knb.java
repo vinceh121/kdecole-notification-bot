@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -55,13 +54,13 @@ public class Knb {
 	private static final Collection<GatewayIntent> INTENTS = Arrays.asList(GUILD_MESSAGES, DIRECT_MESSAGES);
 	private final ObjectMapper mapper;
 	private final JKdecole kdecole;
-	private Config config;
-	private Scheduler scheduler;
-	private JDA jda;
+	private final Config config;
+	private final Scheduler scheduler;
+	private final JDA jda;
 	private final RegistrationListener regisListener;
 	private final MongoClient mongo;
 	private final MongoDatabase mongoDb;
-	private JobDetail job;
+	private final JobDetail job;
 
 	public static void main(final String[] args) {
 		final Knb knb = new Knb();
@@ -72,10 +71,10 @@ public class Knb {
 		Knb.LOG.info("Init Kdecole Notification Bot");
 		this.mapper = new ObjectMapper();
 		try {
-			this.config = this.mapper.readValue(new File("./config.json"), Config.class);
+			this.config = this.mapper.readValue(new File("/etc/kdecole-bot/config.json"), Config.class);
 		} catch (final Exception e1) {
 			Knb.LOG.error("Error while loading config.json: ", e1);
-			System.exit(-1);
+			throw new RuntimeException(e1);
 		}
 
 		Knb.LOG.debug("Starting scheduler");
@@ -84,7 +83,7 @@ public class Knb {
 			this.scheduler.start();
 		} catch (final SchedulerException e) {
 			e.printStackTrace();
-			System.exit(-2);
+			throw new RuntimeException(e);
 		}
 
 		Knb.LOG.info("Connecting to Discord");
@@ -98,10 +97,10 @@ public class Knb {
 			this.jda.awaitReady();
 		} catch (final LoginException e) {
 			Knb.LOG.error("Failed to login to discord", e);
-			System.exit(-3);
+			throw new RuntimeException(e);
 		} catch (final Exception e) {
 			Knb.LOG.error("Failed to init JDA", e);
-			System.exit(-4);
+			throw new RuntimeException(e);
 		}
 
 		Knb.LOG.info("Connected to Discord. Ping: " + this.jda.getGatewayPing() + "ms");
@@ -126,13 +125,14 @@ public class Knb {
 		this.kdecole = new JKdecole();
 
 		this.regisListener = new RegistrationListener(this);
+
+		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
 	}
 
 	private void start() {
 		Knb.LOG.info("Starting...");
 		this.jda.addEventListener(this.regisListener);
 
-		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
 		final Trigger trig = TriggerBuilder.newTrigger()
 				.forJob(this.job)
 				.startNow()

@@ -1,8 +1,11 @@
 package me.vinceh121.knb;
 
+import java.util.Collection;
+
 public class Config {
 	private String token, mongo;
 	private int delay;
+	private Collection<Long> admins;
 
 	public String getToken() {
 		return this.token;
@@ -26,6 +29,14 @@ public class Config {
 
 	public void setMongo(final String mongo) {
 		this.mongo = mongo;
+	}
+
+	public Collection<Long> getAdmins() {
+		return admins;
+	}
+
+	public void setAdmins(Collection<Long> admins) {
+		this.admins = admins;
 	}
 
 }

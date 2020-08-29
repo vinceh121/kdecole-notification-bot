@@ -24,7 +24,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class RegistrationListener extends ListenerAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(RegistrationListener.class);
-	private static final String OWNER = "340473152259751936";
 	private static final Pattern REGEX_AUTH = Pattern.compile("[0-9]+:[a-zA-Z0-9._-]+:[a-zA-Z0-9]+");
 	private final Knb knb;
 
@@ -65,7 +64,7 @@ public class RegistrationListener extends ListenerAdapter {
 
 		final String content = event.getMessage().getContentRaw();
 
-		if (author.getId().equals(OWNER) && !content.contains(":")) {
+		if (this.knb.isUserAdmin(author.getIdLong()) && !content.contains(":")) {
 			try {
 				if (content.equals("trigger")) {
 					this.knb.manualTriggerAll();
@@ -141,9 +140,9 @@ public class RegistrationListener extends ListenerAdapter {
 			ui.setChannelId(channel.getId());
 			ui.setStage(Stage.REGISTERED);
 			this.knb.updateUserInstance(ui);
-			channel.sendMessage("Je vais maintenant envoyer mes notifications dans " + channel.getAsMention()).queue();
+			channel.sendMessage("Je vais maintenant envoyer les notifications dans " + channel.getAsMention()).queue();
 		} else {
-			channel.sendMessage("On dirait que vous n'avez pas la permission `Gèrer les cannaux` dans ce serveur.")
+			channel.sendMessage("On dirait que vous n'avez pas la permission `Gérer les cannaux` dans ce serveur.")
 					.queue();
 		}
 

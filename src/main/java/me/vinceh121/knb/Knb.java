@@ -235,4 +235,8 @@ public class Knb {
 	public JDA getJda() {
 		return this.jda;
 	}
+
+	public boolean isUserAdmin(final long id) {
+		return this.config.getAdmins().contains(id);
+	}
 }

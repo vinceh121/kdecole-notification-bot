@@ -54,23 +54,23 @@ public class UserInstance {
 		return this.stage;
 	}
 
-	public void setStage(Stage stage) {
+	public void setStage(final Stage stage) {
 		this.stage = stage;
 	}
 
 	public Date getLastCheck() {
-		return lastCheck;
+		return this.lastCheck;
 	}
 
-	public void setLastCheck(Date lastCheck) {
+	public void setLastCheck(final Date lastCheck) {
 		this.lastCheck = lastCheck;
 	}
 
 	public String getEndpoint() {
-		return endpoint;
+		return this.endpoint;
 	}
 
-	public void setEndpoint(String endpoint) {
+	public void setEndpoint(final String endpoint) {
 		this.endpoint = endpoint;
 	}
 

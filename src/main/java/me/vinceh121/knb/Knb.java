@@ -18,7 +18,6 @@ import javax.security.auth.login.LoginException;
 import org.apache.http.client.ClientProtocolException;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.Convention;
 import org.bson.codecs.pojo.Conventions;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
@@ -55,13 +54,13 @@ public class Knb {
 	private static final Logger LOG = LoggerFactory.getLogger(Knb.class);
 	private static final Collection<GatewayIntent> INTENTS = Arrays.asList(GUILD_MESSAGES, DIRECT_MESSAGES);
 	private final ObjectMapper mapper;
-	private JKdecole kdecole;
+	private final JKdecole kdecole;
 	private Config config;
 	private Scheduler scheduler;
 	private JDA jda;
-	private RegistrationListener regisListener;
-	private MongoClient mongo;
-	private MongoDatabase mongoDb;
+	private final RegistrationListener regisListener;
+	private final MongoClient mongo;
+	private final MongoDatabase mongoDb;
 	private JobDetail job;
 
 	public static void main(final String[] args) {
@@ -92,7 +91,7 @@ public class Knb {
 
 		final JDABuilder build = JDABuilder.create(this.config.getToken(), Knb.INTENTS);
 		build.setMemberCachePolicy(MemberCachePolicy.NONE);
-		build.setEnabledCacheFlags(EnumSet.noneOf(CacheFlag.class));
+		build.enableCache(Arrays.asList(CacheFlag.values()));
 		build.setActivity(Activity.playing("with wierd APIs"));
 		try {
 			this.jda = build.build();
@@ -133,19 +132,19 @@ public class Knb {
 		Knb.LOG.info("Starting...");
 		this.jda.addEventListener(this.regisListener);
 
-		job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
+		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
 		final Trigger trig = TriggerBuilder.newTrigger()
-				.forJob(job)
+				.forJob(this.job)
 				.startNow()
 				.withIdentity("checker-trig")
-				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(config.getDelay()))
+				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(this.config.getDelay()))
 				.build();
 
-		job.getJobDataMap().put("knb", this);
+		this.job.getJobDataMap().put("knb", this);
 
 		try {
-			scheduler.scheduleJob(job, trig);
-		} catch (SchedulerException e) {
+			this.scheduler.scheduleJob(this.job, trig);
+		} catch (final SchedulerException e) {
 			LOG.error("Could not schedule checking job", e);
 			System.exit(-5);
 		}
@@ -190,7 +189,7 @@ public class Knb {
 			}
 
 			ui.setKdecoleToken(this.kdecole.getToken());
-			ui.setEndpoint(kdecole.getEndpoint());
+			ui.setEndpoint(this.kdecole.getEndpoint());
 			ui.setStage(Stage.CHANNEL);
 
 			this.updateUserInstance(ui);
@@ -208,23 +207,24 @@ public class Knb {
 	}
 
 	public List<Article> getNewsForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
-		kdecole.setToken(ui.getKdecoleToken());
-		kdecole.setEndpoint(ui.getEndpoint());
-		final List<Article> news = kdecole.getNews();
+		this.kdecole.setToken(ui.getKdecoleToken());
+		this.kdecole.setEndpoint(ui.getEndpoint());
+		final List<Article> news = this.kdecole.getNews();
 		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
 		final List<Article> newNews = new ArrayList<>();
 
-		for (Article ar : news) {
-			if (last.before(ar.getDate()))
+		for (final Article ar : news) {
+			if (last.before(ar.getDate())) {
 				newNews.add(ar);
+			}
 		}
 		return newNews;
 	}
 
 	public void manualTriggerAll() throws SchedulerException {
-		scheduler.triggerJob(job.getKey());
+		this.scheduler.triggerJob(this.job.getKey());
 	}
-	
+
 	public void shutdown() throws Exception {
 		Knb.LOG.info("Shutting down");
 		this.scheduler.shutdown();

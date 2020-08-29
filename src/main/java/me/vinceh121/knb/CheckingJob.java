@@ -17,16 +17,16 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class CheckingJob implements Job {
-	public static int COLOR_ARTICLE = 0xff7b1c;
-	private static Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
+	public static final int COLOR_ARTICLE = 0xff7b1c;
+	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
 
 	@Override
-	public void execute(JobExecutionContext context) throws JobExecutionException {
+	public void execute(final JobExecutionContext context) throws JobExecutionException {
 		LOG.info("Checking job called");
 		final Knb knb = (Knb) context.getMergedJobDataMap().get("knb");
 		knb.getAllValidInstances().forEach(u -> {
 			final TextChannel chan = knb.getJda().getTextChannelById(u.getChannelId());
-			processInstance(knb, u, chan);
+			this.processInstance(knb, u, chan);
 		});
 	}
 
@@ -34,13 +34,14 @@ public class CheckingJob implements Job {
 		final List<Article> news;
 		try {
 			news = knb.getNewsForInstance(ui);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.error("Error while gettin news for instance " + ui, e);
 			return;
 		}
 
-		if (news.size() == 0)
+		if (news.size() == 0) {
 			return;
+		}
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 
@@ -51,7 +52,7 @@ public class CheckingJob implements Job {
 		embBuild.setTitle("Nouveaux articles");
 		embBuild.setFooter("By vinceh121");
 
-		for (Article n : news) {
+		for (final Article n : news) {
 			final Field f = new Field(n.getAuthor(), n.getTitle(), true);
 			embBuild.addField(f);
 		}

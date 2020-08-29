@@ -2,7 +2,6 @@ package me.vinceh121.knb;
 
 import java.util.regex.Pattern;
 
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +25,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 public class RegistrationListener extends ListenerAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(RegistrationListener.class);
 	private static final String OWNER = "340473152259751936";
-	private final Pattern REGEX_AUTH = Pattern.compile("[0-9]+:[a-zA-Z0-9._-]+:[a-zA-Z0-9]+");
-	private Knb knb;
+	private static final Pattern REGEX_AUTH = Pattern.compile("[0-9]+:[a-zA-Z0-9._-]+:[a-zA-Z0-9]+");
+	private final Knb knb;
 
 	public RegistrationListener(final Knb knb) {
 		this.knb = knb;
@@ -42,7 +41,7 @@ public class RegistrationListener extends ListenerAdapter {
 					.sendMessage("Merci d'utiliser Kdecole Notification Bot!"
 							+ "\nSi vous êtes administrateur envoyez moi un message privé pour m'initialiser")
 					.queue();
-		} catch (InsufficientPermissionException e) {} // Fail silently on no perm
+		} catch (final InsufficientPermissionException e) {} // Fail silently on no perm
 
 		final UserInstance ui = new UserInstance();
 		ui.setGuildId(event.getGuild().getId());
@@ -53,32 +52,33 @@ public class RegistrationListener extends ListenerAdapter {
 	@Override
 	public void onPrivateMessageReceived(final PrivateMessageReceivedEvent event) {
 		final User author = event.getAuthor();
-		if (author.getId().equals(knb.getJda().getSelfUser().getId()))
+		if (author.getId().equals(this.knb.getJda().getSelfUser().getId())) {
 			return;
+		}
 
 		final PrivateChannel channel = event.getChannel();
 
-		if (author.isBot()) {
+		if (author.isBot()) { // XXX probably a bad idea
 			channel.sendMessage("Beep boop beep?").queue();
 			return;
 		}
 
 		final String content = event.getMessage().getContentRaw();
-		
+
 		if (author.getId().equals(OWNER) && !content.contains(":")) {
 			try {
 				if (content.equals("trigger")) {
-					knb.manualTriggerAll();
+					this.knb.manualTriggerAll();
 					channel.sendMessage("triggered").queue();
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				channel.sendMessage(e.toString()).queue();
 			}
 			return;
 		}
 
-		if (!this.REGEX_AUTH.matcher(content).matches()) {
-			channel.sendMessage("Pour m'enregistrer envoyez moi un message de la forme `idguild:username:jeton`\n"
+		if (!REGEX_AUTH.matcher(content).matches()) {
+			channel.sendMessage("Pour m'enregistrer, envoyez moi un message de la forme `idguild:username:jeton`\n"
 					+ "Pour obtenir un jeton, aller dans les préférences de votre ENT, puis dans l'onglet 'Application Mobile'\n"
 					+ "Votre nom d'utilisateur, ni votre jeton sont sauvegardés.\n"
 					+ "Pour obenir id de votre guild, veulliez activer le mode développeur de Discord,"
@@ -91,7 +91,7 @@ public class RegistrationListener extends ListenerAdapter {
 		final String username = parts[1];
 		final String password = parts[2];
 
-		final Guild guild = knb.getJda().getGuildById(guildId);
+		final Guild guild = this.knb.getJda().getGuildById(guildId);
 
 		final UserInstance ui
 				= this.knb.getUserInstance(Filters.and(Filters.eq("stage", "ADDED"), Filters.eq("guildId", guildId)));
@@ -114,7 +114,7 @@ public class RegistrationListener extends ListenerAdapter {
 
 		channel.sendMessage("Nous somment entrain de vérifier si Kdecole va être gentil...").queue();
 
-		this.knb.setupUserInstance(ui, username, password).thenAccept((msg) -> {
+		this.knb.setupUserInstance(ui, username, password).thenAccept(msg -> {
 			channel.sendMessage(msg).queue();
 		});
 	}
@@ -123,8 +123,9 @@ public class RegistrationListener extends ListenerAdapter {
 	public void onGuildMessageReceived(final GuildMessageReceivedEvent event) {
 		final Message msg = event.getMessage();
 		final TextChannel channel = event.getChannel();
-		if (!msg.isMentioned(this.knb.getJda().getSelfUser(), MentionType.USER))
+		if (!msg.isMentioned(this.knb.getJda().getSelfUser(), MentionType.USER)) {
 			return;
+		}
 
 		final Member member = event.getMember();
 
@@ -139,7 +140,7 @@ public class RegistrationListener extends ListenerAdapter {
 		if (member.hasPermission(Permission.MANAGE_CHANNEL)) {
 			ui.setChannelId(channel.getId());
 			ui.setStage(Stage.REGISTERED);
-			knb.updateUserInstance(ui);
+			this.knb.updateUserInstance(ui);
 			channel.sendMessage("Je vais maintenant envoyer mes notifications dans " + channel.getAsMention()).queue();
 		} else {
 			channel.sendMessage("On dirait que vous n'avez pas la permission `Gèrer les cannaux` dans ce serveur.")

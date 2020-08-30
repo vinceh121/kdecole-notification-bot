@@ -66,6 +66,14 @@ public class UserInstance {
 		this.showWarnings = showWarnings;
 	}
 
+	public boolean isAllowOthers() {
+		return allowOthers;
+	}
+
+	public void setAllowOthers(boolean allowOthers) {
+		this.allowOthers = allowOthers;
+	}
+
 	@Override
 	public String toString() {
 		return "UserInstance [id="

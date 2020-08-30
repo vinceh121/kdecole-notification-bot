@@ -10,7 +10,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import javax.security.auth.login.LoginException;
@@ -32,18 +34,25 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
-import me.vinceh121.jkdecole.Article;
 import me.vinceh121.jkdecole.JKdecole;
-import me.vinceh121.jkdecole.messages.MessageInfoUtilisateur;
+import me.vinceh121.jkdecole.entities.Article;
+import me.vinceh121.jkdecole.entities.info.UserInfo;
+import me.vinceh121.knb.commands.CmdAuth;
+import me.vinceh121.knb.commands.CmdHelp;
+import me.vinceh121.knb.commands.CmdPing;
+import me.vinceh121.knb.commands.CmdWarnings;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -60,7 +69,9 @@ public class Knb {
 	private final CommandListener regisListener;
 	private final MongoClient mongo;
 	private final MongoDatabase mongoDb;
+	private final MongoCollection<UserInstance> colInstances;
 	private final JobDetail job;
+	private final Map<String, AbstractCommand> cmdMap = new Hashtable<>();
 
 	public static void main(final String[] args) {
 		final Knb knb = new Knb();
@@ -122,7 +133,10 @@ public class Knb {
 		this.mongo = MongoClients.create(mongoSets);
 		this.mongoDb = this.mongo.getDatabase("knb");
 
-		this.regisListener = new CommandListener(this);
+		this.colInstances = this.mongoDb.getCollection("instances", UserInstance.class);
+
+		this.registerCommands();
+		this.regisListener = new CommandListener(this, this.cmdMap);
 
 		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
 	}
@@ -149,28 +163,26 @@ public class Knb {
 	}
 
 	public void addUserInstance(final UserInstance ui) {
-		this.mongoDb.getCollection("instances", UserInstance.class).insertOne(ui);
+		this.getColInstances().insertOne(ui);
 	}
 
 	public UserInstance getUserInstance(final Bson filter) {
-		return this.mongoDb.getCollection("instances", UserInstance.class).find(filter).first();
+		return this.getColInstances().find(filter).first();
 	}
 
 	public void updateUserInstance(final UserInstance ui) {
-		this.mongoDb.getCollection("instances", UserInstance.class).replaceOne(Filters.eq(ui.getId()), ui);
+		this.getColInstances().replaceOne(Filters.eq(ui.getId()), ui);
 	}
 
 	public UserInstance removeGuild(final String guildId) {
-		return this.mongoDb.getCollection("instances", UserInstance.class)
-				.findOneAndDelete(Filters.eq("guildId", guildId));
+		return this.getColInstances().findOneAndDelete(Filters.eq("guildId", guildId));
 	}
 
 	public FindIterable<UserInstance> getAllValidInstances() {
-		return this.mongoDb.getCollection("instances", UserInstance.class)
-				.find(Filters.and(Filters.eq("stage", "REGISTERED"), Filters.exists("channelId")));
+		return this.getColInstances().find(Filters.ne("channelId", null));
 	}
 
-	public CompletableFuture<MessageInfoUtilisateur> setupUserInstance(final UserInstance ui, final String username,
+	public CompletableFuture<UserInfo> setupUserInstance(final UserInstance ui, final String username,
 			final String password) {
 		return CompletableFuture.supplyAsync(() -> {
 			final JKdecole kdecole = getKdecole();
@@ -190,17 +202,10 @@ public class Knb {
 			ui.setKdecoleToken(kdecole.getToken());
 			ui.setEndpoint(kdecole.getEndpoint());
 
-			this.updateUserInstance(ui);
+			this.addUserInstance(ui);
 
 			try {
-				/*
-				 * return "Succés! La connection a réussit en tant que `"
-				 * + this.kdecole.getInfoUtilisateur().getNom()
-				 * +
-				 * "`. Vous devez maintenant mentioner le bot dans le canal où vous voulez qu'il notifie. "
-				 * + "Pour cela tapez `@Kdecole Bot#6747`";
-				 */
-				return kdecole.getInfoUtilisateur();
+				return kdecole.getUserInfo();
 			} catch (final Exception e) {
 				Knb.LOG.error("Error while getting user info", e);
 				throw new RuntimeException(
@@ -225,12 +230,31 @@ public class Knb {
 		return newNews;
 	}
 
+	public UserInfo getUserInfoForInstace(final UserInstance ui)
+			throws JsonParseException, JsonMappingException, ClientProtocolException, IOException {
+		final JKdecole kdecole = getKdecole();
+		kdecole.setToken(ui.getKdecoleToken());
+		kdecole.setEndpoint(ui.getEndpoint());
+		return kdecole.getUserInfo();
+	}
+
 	public void manualTriggerAll() throws SchedulerException {
 		this.scheduler.triggerJob(this.job.getKey());
 	}
 
 	private JKdecole getKdecole() {
 		return new JKdecole("Kdecole Notification Bot/0.0.1 (github.com/vinceh121/kdecole-notification-bot)");
+	}
+
+	private void registerCommands() {
+		this.registerCmd(new CmdAuth(this));
+		this.registerCmd(new CmdHelp(this));
+		this.registerCmd(new CmdWarnings(this));
+		this.registerCmd(new CmdPing(this));
+	}
+
+	private void registerCmd(final AbstractCommand cmd) {
+		this.cmdMap.put(cmd.getName(), cmd);
 	}
 
 	public void shutdown() throws Exception {
@@ -244,7 +268,19 @@ public class Knb {
 		return this.jda;
 	}
 
+	public Map<String, AbstractCommand> getCmdMap() {
+		return new Hashtable<>(cmdMap);
+	}
+
+	public ObjectMapper getMapper() {
+		return mapper;
+	}
+
 	public boolean isUserAdmin(final long id) {
 		return this.config.getAdmins().contains(id);
+	}
+
+	public MongoCollection<UserInstance> getColInstances() {
+		return colInstances;
 	}
 }

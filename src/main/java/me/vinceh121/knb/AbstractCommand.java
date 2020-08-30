@@ -24,11 +24,19 @@ public abstract class AbstractCommand {
 		return "Pas d'aide fournie";
 	}
 
+	public String getSyntax() {
+		return getName();
+	}
+
 	public String getName() {
-		return getClass().getName().substring(3).toLowerCase();
+		return getClass().getSimpleName().substring(3).toLowerCase();
 	}
 
 	public boolean isAdminCommand() {
+		return false;
+	}
+
+	public boolean isAuthenticatedCommand() {
 		return false;
 	}
 }

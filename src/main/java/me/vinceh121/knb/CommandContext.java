@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 public class CommandContext {
 	private GuildMessageReceivedEvent event;
 	private List<String> args;
+	private UserInstance userInstance;
 
 	public GuildMessageReceivedEvent getEvent() {
 		return event;
@@ -22,5 +23,13 @@ public class CommandContext {
 
 	public void setArgs(List<String> args) {
 		this.args = args;
+	}
+
+	public UserInstance getUserInstance() {
+		return userInstance;
+	}
+
+	public void setUserInstance(UserInstance userInstance) {
+		this.userInstance = userInstance;
 	}
 }

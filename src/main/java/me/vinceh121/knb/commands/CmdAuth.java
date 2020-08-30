@@ -18,7 +18,7 @@ public class CmdAuth extends AbstractCommand {
 
 	@Override
 	public boolean validateSyntax(final CommandContext ctx) {
-		return ctx.getArgs().size() < 2;
+		return ctx.getArgs().size() >= 2;
 	}
 
 	@Override
@@ -54,6 +54,16 @@ public class CmdAuth extends AbstractCommand {
 					+ "Vous devez maintenant configurer votre intégration").queue();
 			return null;
 		});
+	}
+
+	@Override
+	public String getHelp() {
+		return "S'authetifier a Kdecole";
+	}
+	
+	@Override
+	public String getSyntax() {
+		return "auth <username> <jeton mobile> [index d'endpoint]";
 	}
 
 }

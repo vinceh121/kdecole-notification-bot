@@ -46,12 +46,13 @@ public class CheckingJob implements Job {
 			LOG.error("Error while getting news for instance " + ui.getId(), e);
 			knb.getColInstances().updateOne(Filters.eq(ui.getId()), Updates.set("showWarnings", false));
 			ui.setShowWarnings(false);
-			if (ui.isShowWarnings())
+			if (ui.isShowWarnings()) {
 				chan.sendMessage("Une érreur est survenue en récupérant contactant l'ENT: "
 						+ e
 						+ "\n"
 						+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
 						.queue();
+			}
 			return;
 		}
 
@@ -69,9 +70,7 @@ public class CheckingJob implements Job {
 			LOG.error("Failed to get user info for instance " + ui.getId(), e);
 		}
 
-		final Date oldest = Collections.min(news, (o1, o2) -> {
-			return o1.getDate().compareTo(o2.getDate());
-		}).getDate();
+		final Date oldest = Collections.min(news, (o1, o2) -> o1.getDate().compareTo(o2.getDate())).getDate();
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 

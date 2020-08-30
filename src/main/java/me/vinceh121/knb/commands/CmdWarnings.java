@@ -15,7 +15,8 @@ public class CmdWarnings extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		knb.getColInstances().updateOne(Filters.eq(ctx.getUserInstance().getId()), Updates.set("showWarnings", true));
+		this.knb.getColInstances()
+				.updateOne(Filters.eq(ctx.getUserInstance().getId()), Updates.set("showWarnings", true));
 		ctx.getEvent().getChannel().sendMessage("Les avertissements seront affichés").queue();
 	}
 

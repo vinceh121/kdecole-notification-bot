@@ -6,7 +6,7 @@ import me.vinceh121.knb.Knb;
 
 public class CmdHelp extends AbstractCommand {
 
-	public CmdHelp(Knb knb) {
+	public CmdHelp(final Knb knb) {
 		super(knb);
 	}
 
@@ -18,8 +18,9 @@ public class CmdHelp extends AbstractCommand {
 			sb.append("(");
 			sb.append(cmd.getName());
 			sb.append(")\t\t\t\t");
-			if (cmd.isAdminCommand())
+			if (cmd.isAdminCommand()) {
 				sb.append("(#)");
+			}
 			sb.append(cmd.getHelp());
 			sb.append("\n");
 		}

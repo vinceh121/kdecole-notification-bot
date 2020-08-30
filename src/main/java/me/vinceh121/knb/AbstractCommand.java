@@ -25,11 +25,11 @@ public abstract class AbstractCommand {
 	}
 
 	public String getSyntax() {
-		return getName();
+		return this.getName();
 	}
 
 	public String getName() {
-		return getClass().getSimpleName().substring(3).toLowerCase();
+		return this.getClass().getSimpleName().substring(3).toLowerCase();
 	}
 
 	public boolean isAdminCommand() {

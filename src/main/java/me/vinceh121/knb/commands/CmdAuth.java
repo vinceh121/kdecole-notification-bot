@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class CmdAuth extends AbstractCommand {
 
-	public CmdAuth(Knb knb) {
+	public CmdAuth(final Knb knb) {
 		super(knb);
 	}
 
@@ -31,7 +31,7 @@ public class CmdAuth extends AbstractCommand {
 			return;
 		}
 
-		UserInstance ui = knb.getUserInstance(Filters.eq("channelId", chan.getId()));
+		UserInstance ui = this.knb.getUserInstance(Filters.eq("channelId", chan.getId()));
 
 		if (ui != null) {
 			chan.sendMessage("Ce channel est déjà en cours d'utilisation par le bot").queue();
@@ -60,7 +60,7 @@ public class CmdAuth extends AbstractCommand {
 	public String getHelp() {
 		return "S'authetifier a Kdecole";
 	}
-	
+
 	@Override
 	public String getSyntax() {
 		return "auth <username> <jeton mobile> [index d'endpoint]";

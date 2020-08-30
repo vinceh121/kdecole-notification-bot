@@ -59,7 +59,7 @@ public class UserInstance {
 	}
 
 	public boolean isShowWarnings() {
-		return showWarnings;
+		return this.showWarnings;
 	}
 
 	public void setShowWarnings(final boolean showWarnings) {
@@ -67,27 +67,27 @@ public class UserInstance {
 	}
 
 	public boolean isAllowOthers() {
-		return allowOthers;
+		return this.allowOthers;
 	}
 
-	public void setAllowOthers(boolean allowOthers) {
+	public void setAllowOthers(final boolean allowOthers) {
 		this.allowOthers = allowOthers;
 	}
 
 	@Override
 	public String toString() {
 		return "UserInstance [id="
-				+ id
+				+ this.id
 				+ ", kdecoleToken="
-				+ kdecoleToken
+				+ this.kdecoleToken
 				+ ", adderId="
-				+ adderId
+				+ this.adderId
 				+ ", channelId="
-				+ channelId
+				+ this.channelId
 				+ ", endpoint="
-				+ endpoint
+				+ this.endpoint
 				+ ", lastCheck="
-				+ lastCheck
+				+ this.lastCheck
 				+ "]";
 	}
 }

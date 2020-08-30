@@ -68,7 +68,7 @@ public class CommandListener extends ListenerAdapter {
 
 		METRICS_COMMANDS.inc();
 
-		if (cmd.isAdminCommand() && !knb.isUserAdmin(event.getAuthor().getIdLong())) {
+		if (cmd.isAdminCommand() && !this.knb.isUserAdmin(event.getAuthor().getIdLong())) {
 			event.getChannel().sendMessage("Vous devez être admin du bot pour utiliser cette commande").queue();
 			return;
 		}
@@ -83,7 +83,7 @@ public class CommandListener extends ListenerAdapter {
 		}
 
 		if (cmd.isAuthenticatedCommand()) {
-			final UserInstance ui = knb.getUserInstance(Filters.eq("channelId", event.getChannel().getId()));
+			final UserInstance ui = this.knb.getUserInstance(Filters.eq("channelId", event.getChannel().getId()));
 			if (ui == null) {
 				event.getChannel().sendMessage("Il n'y a pas d'intégration dans ce canal").queue();
 				return;

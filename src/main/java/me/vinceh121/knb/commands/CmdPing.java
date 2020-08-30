@@ -6,12 +6,12 @@ import me.vinceh121.knb.Knb;
 
 public class CmdPing extends AbstractCommand {
 
-	public CmdPing(Knb knb) {
+	public CmdPing(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final long start = System.currentTimeMillis();
 		ctx.getEvent()
 				.getChannel()
@@ -38,7 +38,7 @@ public class CmdPing extends AbstractCommand {
 							+ (System.currentTimeMillis() - start)
 							+ "ms\n"
 							+ "JDA ping: "
-							+ knb.getJda().getGatewayPing()
+							+ this.knb.getJda().getGatewayPing()
 							+ "ms\n").queue();
 				});
 	}

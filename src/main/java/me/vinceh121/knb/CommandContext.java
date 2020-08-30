@@ -10,26 +10,26 @@ public class CommandContext {
 	private UserInstance userInstance;
 
 	public GuildMessageReceivedEvent getEvent() {
-		return event;
+		return this.event;
 	}
 
-	public void setEvent(GuildMessageReceivedEvent event) {
+	public void setEvent(final GuildMessageReceivedEvent event) {
 		this.event = event;
 	}
 
 	public List<String> getArgs() {
-		return args;
+		return this.args;
 	}
 
-	public void setArgs(List<String> args) {
+	public void setArgs(final List<String> args) {
 		this.args = args;
 	}
 
 	public UserInstance getUserInstance() {
-		return userInstance;
+		return this.userInstance;
 	}
 
-	public void setUserInstance(UserInstance userInstance) {
+	public void setUserInstance(final UserInstance userInstance) {
 		this.userInstance = userInstance;
 	}
 }

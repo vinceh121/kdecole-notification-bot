@@ -32,10 +32,10 @@ public class Config {
 	}
 
 	public Collection<Long> getAdmins() {
-		return admins;
+		return this.admins;
 	}
 
-	public void setAdmins(Collection<Long> admins) {
+	public void setAdmins(final Collection<Long> admins) {
 		this.admins = admins;
 	}
 

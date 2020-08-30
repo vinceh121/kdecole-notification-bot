@@ -79,7 +79,7 @@ public class Knb {
 		DefaultExports.initialize();
 		try {
 			new HTTPServer("127.0.0.1", 8600, true);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			LOG.error("Failed to start metrics server", e);
 		}
 		final Knb knb = new Knb();
@@ -193,7 +193,7 @@ public class Knb {
 	public CompletableFuture<UserInfo> setupUserInstance(final UserInstance ui, final String username,
 			final String password) {
 		return CompletableFuture.supplyAsync(() -> {
-			final JKdecole kdecole = getKdecole();
+			final JKdecole kdecole = this.getKdecole();
 			boolean success = false;
 			try {
 				success = kdecole.login(username, password, true);
@@ -223,7 +223,7 @@ public class Knb {
 	}
 
 	public List<Article> getNewsForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
-		final JKdecole kdecole = getKdecole();
+		final JKdecole kdecole = this.getKdecole();
 		kdecole.setToken(ui.getKdecoleToken());
 		kdecole.setEndpoint(ui.getEndpoint());
 		final List<Article> news = kdecole.getNews();
@@ -240,7 +240,7 @@ public class Knb {
 
 	public UserInfo getUserInfoForInstace(final UserInstance ui)
 			throws JsonParseException, JsonMappingException, ClientProtocolException, IOException {
-		final JKdecole kdecole = getKdecole();
+		final JKdecole kdecole = this.getKdecole();
 		kdecole.setToken(ui.getKdecoleToken());
 		kdecole.setEndpoint(ui.getEndpoint());
 		return kdecole.getUserInfo();
@@ -277,11 +277,11 @@ public class Knb {
 	}
 
 	public Map<String, AbstractCommand> getCmdMap() {
-		return new Hashtable<>(cmdMap);
+		return new Hashtable<>(this.cmdMap);
 	}
 
 	public ObjectMapper getMapper() {
-		return mapper;
+		return this.mapper;
 	}
 
 	public boolean isUserAdmin(final long id) {
@@ -289,6 +289,6 @@ public class Knb {
 	}
 
 	public MongoCollection<UserInstance> getColInstances() {
-		return colInstances;
+		return this.colInstances;
 	}
 }

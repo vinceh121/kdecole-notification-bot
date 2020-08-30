@@ -46,6 +46,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
+import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.client.hotspot.DefaultExports;
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
@@ -74,6 +76,12 @@ public class Knb {
 	private final Map<String, AbstractCommand> cmdMap = new Hashtable<>();
 
 	public static void main(final String[] args) {
+		DefaultExports.initialize();
+		try {
+			new HTTPServer("127.0.0.1", 8600, true);
+		} catch (IOException e) {
+			LOG.error("Failed to start metrics server", e);
+		}
 		final Knb knb = new Knb();
 		knb.start();
 	}

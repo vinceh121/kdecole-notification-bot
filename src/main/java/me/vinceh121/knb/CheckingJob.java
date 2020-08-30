@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
+import io.prometheus.client.Summary;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -24,6 +25,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 public class CheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
 	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
+	private static final Summary METRICS_NEWS_COUNT
+			= Summary.build("knb_news_count", "Numbers of new articles").register();
 
 	@Override
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
@@ -51,6 +54,8 @@ public class CheckingJob implements Job {
 						.queue();
 			return;
 		}
+
+		METRICS_NEWS_COUNT.observe(news.size());
 
 		if (news.size() == 0) {
 			return;

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.client.model.Filters;
 
+import io.prometheus.client.Counter;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -23,6 +24,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(CommandListener.class);
+	private static final Counter METRICS_COMMANDS = Counter.build("knb_cmds", "Counts all command calls").register();
 	private final Knb knb;
 	private final Map<String, AbstractCommand> map;
 
@@ -63,6 +65,8 @@ public class CommandListener extends ListenerAdapter {
 		if (cmd == null) {
 			return;
 		}
+
+		METRICS_COMMANDS.inc();
 
 		if (cmd.isAdminCommand() && !knb.isUserAdmin(event.getAuthor().getIdLong())) {
 			event.getChannel().sendMessage("Vous devez être admin du bot pour utiliser cette commande").queue();

@@ -1,10 +1,11 @@
 package me.vinceh121.knb;
 
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 public class CommandListener extends ListenerAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(CommandListener.class);
 	private static final Counter METRICS_COMMANDS = Counter.build("knb_cmds", "Counts all command calls").register();
+	private static final Pattern SPLIT_PATTERN = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 	private final Knb knb;
 	private final Map<String, AbstractCommand> map;
 
@@ -55,7 +57,18 @@ public class CommandListener extends ListenerAdapter {
 			return;
 		}
 
-		final List<String> args = new Vector<>(Arrays.asList(msg.getContentRaw().split("[\\s]+")));
+		final List<String> args = new Vector<>();
+		// https://stackoverflow.com/a/366532
+		final Matcher regexMatcher = SPLIT_PATTERN.matcher(msg.getContentRaw());
+		while (regexMatcher.find()) {
+			if (regexMatcher.group(1) != null) {
+				args.add(regexMatcher.group(1));
+			} else if (regexMatcher.group(2) != null) {
+				args.add(regexMatcher.group(2));
+			} else {
+				args.add(regexMatcher.group());
+			}
+		}
 
 		args.remove(0); // remove ping
 		final String rawCmd = args.remove(0).toLowerCase(); // remove and retrieve called cmd

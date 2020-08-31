@@ -33,26 +33,36 @@ public class CheckingJob implements Job {
 		LOG.info("Checking job called");
 		final Knb knb = (Knb) context.getMergedJobDataMap().get("knb");
 		knb.getAllValidInstances().forEach(u -> {
-			final TextChannel chan = knb.getJda().getTextChannelById(u.getChannelId());
-			this.processInstance(knb, u, chan);
+			if (u.getRelays().contains(RelayType.ARTICLES)) {
+				this.processArticles(knb, u);
+			}
+			if (u.getRelays().contains(RelayType.EMAILS)) {
+				this.processEmails(knb, u);
+			}
+			if (u.getRelays().contains(RelayType.NOTES)) {
+				this.processGrades(knb, u);
+			}
 		});
 	}
 
-	private void processInstance(final Knb knb, final UserInstance ui, final TextChannel chan) {
+	private void processGrades(final Knb knb, final UserInstance ui) {
+		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
+		chan.sendMessage("Grades aren't yet implemented").queue();
+	}
+
+	private void processEmails(final Knb knb, final UserInstance ui) {
+		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
+		chan.sendMessage("Emails aren't yet implemented").queue();
+	}
+
+	private void processArticles(final Knb knb, final UserInstance ui) {
+		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<Article> news;
 		try {
 			news = knb.getNewsForInstance(ui);
 		} catch (final Exception e) {
 			LOG.error("Error while getting news for instance " + ui.getId(), e);
-			knb.getColInstances().updateOne(Filters.eq(ui.getId()), Updates.set("showWarnings", false));
-			ui.setShowWarnings(false);
-			if (ui.isShowWarnings()) {
-				chan.sendMessage("Une érreur est survenue en récupérant contactant l'ENT: "
-						+ e
-						+ "\n"
-						+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
-						.queue();
-			}
+			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant contactant l'ENT: " + e);
 			return;
 		}
 
@@ -91,6 +101,17 @@ public class CheckingJob implements Job {
 
 		ui.setLastCheck(new Date());
 		knb.updateUserInstance(ui);
+	}
+
+	private void sendWarning(final Knb knb, final TextChannel chan, final UserInstance ui, final String text) {
+		if (ui.isShowWarnings()) {
+			chan.sendMessage(text
+					+ "\n\n"
+					+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
+					.queue();
+			knb.getColInstances().updateOne(Filters.eq(ui.getId()), Updates.set("showWarnings", false));
+			ui.setShowWarnings(false);
+		}
 	}
 
 }

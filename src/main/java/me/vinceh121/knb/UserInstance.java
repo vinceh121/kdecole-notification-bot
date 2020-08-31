@@ -1,6 +1,8 @@
 package me.vinceh121.knb;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 
@@ -9,6 +11,7 @@ public class UserInstance {
 	private String kdecoleToken, adderId, channelId, endpoint;
 	private Date lastCheck = new Date(0L);
 	private boolean showWarnings = true, allowOthers = false;
+	private List<RelayType> relays = new ArrayList<>();
 
 	public ObjectId getId() {
 		return this.id;
@@ -72,6 +75,14 @@ public class UserInstance {
 
 	public void setAllowOthers(final boolean allowOthers) {
 		this.allowOthers = allowOthers;
+	}
+
+	public List<RelayType> getRelays() {
+		return relays;
+	}
+
+	public void setRelays(List<RelayType> relays) {
+		this.relays = relays;
 	}
 
 	@Override

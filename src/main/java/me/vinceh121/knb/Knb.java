@@ -51,9 +51,13 @@ import io.prometheus.client.hotspot.DefaultExports;
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
+import me.vinceh121.knb.commands.CmdApropos;
 import me.vinceh121.knb.commands.CmdAuth;
 import me.vinceh121.knb.commands.CmdHelp;
 import me.vinceh121.knb.commands.CmdPing;
+import me.vinceh121.knb.commands.CmdRelay;
+import me.vinceh121.knb.commands.CmdSetPlaying;
+import me.vinceh121.knb.commands.CmdTriggerAll;
 import me.vinceh121.knb.commands.CmdWarnings;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -105,24 +109,7 @@ public class Knb {
 			throw new RuntimeException(e);
 		}
 
-		Knb.LOG.info("Connecting to Discord");
-
-		final JDABuilder build = JDABuilder.create(this.config.getToken(), Knb.INTENTS);
-		build.setMemberCachePolicy(MemberCachePolicy.NONE);
-		build.enableCache(Collections.emptyList());
-		build.setActivity(Activity.playing("with wierd APIs"));
-		try {
-			this.jda = build.build();
-			this.jda.awaitReady();
-		} catch (final LoginException e) {
-			Knb.LOG.error("Failed to login to discord", e);
-			throw new RuntimeException(e);
-		} catch (final Exception e) {
-			Knb.LOG.error("Failed to init JDA", e);
-			throw new RuntimeException(e);
-		}
-
-		Knb.LOG.info("Connected to Discord. Ping: {}ms", this.jda.getGatewayPing());
+		LOG.info("Connecting to DB");
 
 		final CodecRegistry codecRegistry
 				= CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -142,6 +129,27 @@ public class Knb {
 		this.mongoDb = this.mongo.getDatabase("knb");
 
 		this.colInstances = this.mongoDb.getCollection("instances", UserInstance.class);
+
+		Knb.LOG.info("Connecting to Discord");
+
+		final JDABuilder build = JDABuilder.create(this.config.getToken(), Knb.INTENTS);
+		build.setMemberCachePolicy(MemberCachePolicy.NONE);
+		build.enableCache(Collections.emptyList());
+		build.setActivity(Activity.playing("with wierd APIs"));
+		try {
+			this.jda = build.build();
+			this.jda.awaitReady();
+		} catch (final LoginException e) {
+			Knb.LOG.error("Failed to login to discord", e);
+			throw new RuntimeException(e);
+		} catch (final Exception e) {
+			Knb.LOG.error("Failed to init JDA", e);
+			throw new RuntimeException(e);
+		}
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> this.jda.shutdown()));
+
+		Knb.LOG.info("Connected to Discord. Ping: {}ms", this.jda.getGatewayPing());
 
 		this.registerCommands();
 		this.regisListener = new CommandListener(this, this.cmdMap);
@@ -187,7 +195,7 @@ public class Knb {
 	}
 
 	public FindIterable<UserInstance> getAllValidInstances() {
-		return this.getColInstances().find(Filters.ne("channelId", null));
+		return this.getColInstances().find(Filters.exists("kdecoleToken"));
 	}
 
 	public CompletableFuture<UserInfo> setupUserInstance(final UserInstance ui, final String username,
@@ -209,6 +217,7 @@ public class Knb {
 
 			ui.setKdecoleToken(kdecole.getToken());
 			ui.setEndpoint(kdecole.getEndpoint());
+			ui.getRelays().add(RelayType.ARTICLES);
 
 			this.addUserInstance(ui);
 
@@ -259,6 +268,10 @@ public class Knb {
 		this.registerCmd(new CmdHelp(this));
 		this.registerCmd(new CmdWarnings(this));
 		this.registerCmd(new CmdPing(this));
+		this.registerCmd(new CmdTriggerAll(this));
+		this.registerCmd(new CmdSetPlaying(this));
+		this.registerCmd(new CmdApropos(this));
+		this.registerCmd(new CmdRelay(this));
 	}
 
 	private void registerCmd(final AbstractCommand cmd) {

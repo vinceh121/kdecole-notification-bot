@@ -79,7 +79,7 @@ public class CommandListener extends ListenerAdapter {
 			return;
 		}
 
-		METRICS_COMMANDS.inc();
+		METRICS_COMMANDS.labels(cmd.getName()).inc();
 		
 		LOG.debug("Cmd Exec {} {}", cmd.getName(), args);
 

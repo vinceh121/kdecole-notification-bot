@@ -80,6 +80,8 @@ public class CommandListener extends ListenerAdapter {
 		}
 
 		METRICS_COMMANDS.inc();
+		
+		LOG.debug("Cmd Exec {} {}", cmd.getName(), args);
 
 		if (cmd.isAdminCommand() && !this.knb.isUserAdmin(event.getAuthor().getIdLong())) {
 			event.getChannel().sendMessage("Vous devez être admin du bot pour utiliser cette commande").queue();

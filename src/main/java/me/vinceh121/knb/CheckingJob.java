@@ -17,6 +17,7 @@ import com.mongodb.client.model.Updates;
 import io.prometheus.client.Summary;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
+import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
@@ -27,6 +28,8 @@ public class CheckingJob implements Job {
 	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
 	private static final Summary METRICS_NEWS_COUNT
 			= Summary.build("knb_news_count", "Numbers of new articles").register();
+	private static final Summary METRICS_EMAILS_COUNT
+			= Summary.build("knb_emails_count", "Numbers of new emails").register();
 
 	@Override
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
@@ -52,7 +55,20 @@ public class CheckingJob implements Job {
 
 	private void processEmails(final Knb knb, final UserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
-		chan.sendMessage("Emails aren't yet implemented").queue();
+		final List<CommunicationPreview> coms;
+		try {
+			coms = knb.getNewMailsForInstance(ui);
+		} catch (final Exception e) {
+			LOG.error("Error while getting emails for instance " + ui.getId(), e);
+			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux mails: " + e);
+			return;
+		}
+
+		METRICS_EMAILS_COUNT.observe(coms.size());
+
+		if (coms.size() == 0) {
+			return;
+		}
 	}
 
 	private void processArticles(final Knb knb, final UserInstance ui) {
@@ -62,7 +78,7 @@ public class CheckingJob implements Job {
 			news = knb.getNewsForInstance(ui);
 		} catch (final Exception e) {
 			LOG.error("Error while getting news for instance " + ui.getId(), e);
-			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant contactant l'ENT: " + e);
+			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux articles: " + e);
 			return;
 		}
 

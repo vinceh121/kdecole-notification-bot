@@ -8,7 +8,7 @@ import org.bson.types.ObjectId;
 
 public class UserInstance {
 	private ObjectId id;
-	private String kdecoleToken, adderId, channelId, endpoint;
+	private String kdecoleToken, adderId, channelId, guildId, endpoint;
 	private Date lastCheck = new Date(0L);
 	private boolean showWarnings = true, allowOthers = false;
 	private List<RelayType> relays = new ArrayList<>();
@@ -83,6 +83,14 @@ public class UserInstance {
 
 	public void setRelays(List<RelayType> relays) {
 		this.relays = relays;
+	}
+
+	public String getGuildId() {
+		return guildId;
+	}
+
+	public void setGuildId(String guildId) {
+		this.guildId = guildId;
 	}
 
 	@Override

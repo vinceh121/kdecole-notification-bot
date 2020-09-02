@@ -51,6 +51,7 @@ import io.prometheus.client.hotspot.DefaultExports;
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
+import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import me.vinceh121.knb.commands.CmdApropos;
 import me.vinceh121.knb.commands.CmdAuth;
 import me.vinceh121.knb.commands.CmdHelp;
@@ -245,6 +246,24 @@ public class Knb {
 			}
 		}
 		return newNews;
+	}
+
+	public List<CommunicationPreview> getNewMailsForInstance(final UserInstance ui)
+			throws ClientProtocolException, IOException {
+		final JKdecole kdecole = this.getKdecole();
+		kdecole.setToken(ui.getKdecoleToken());
+		kdecole.setEndpoint(ui.getEndpoint());
+
+		final List<CommunicationPreview> coms = kdecole.getInbox(-1).getComs();
+		final List<CommunicationPreview> updatedComs = new ArrayList<>();
+
+		for (final CommunicationPreview c : coms) {
+			if (ui.getLastCheck().before(c.getLastMessage())) {
+				updatedComs.add(c);
+			}
+		}
+
+		return updatedComs;
 	}
 
 	public UserInfo getUserInfoForInstace(final UserInstance ui)

@@ -41,6 +41,7 @@ public class CmdAuth extends AbstractCommand {
 		ui = new UserInstance();
 		ui.setAdderId(mem.getId());
 		ui.setChannelId(chan.getId());
+		ui.setGuildId(chan.getGuild().getId());
 
 		this.knb.setupUserInstance(ui, ctx.getArgs().get(0), ctx.getArgs().get(1)).handleAsync((info, t) -> {
 			if (t != null) {

@@ -30,21 +30,25 @@ public class CheckingJob implements Job {
 			= Summary.build("knb_news_count", "Numbers of new articles").register();
 	private static final Summary METRICS_EMAILS_COUNT
 			= Summary.build("knb_emails_count", "Numbers of new emails").register();
+	private static final Summary METRICS_PROCESS_TIME
+			= Summary.build("knb_process_time", "Time taken to process 1 instance").create();
 
 	@Override
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
 		LOG.info("Checking job called");
 		final Knb knb = (Knb) context.getMergedJobDataMap().get("knb");
 		knb.getAllValidInstances().forEach(u -> {
-			if (u.getRelays().contains(RelayType.ARTICLES)) {
-				this.processArticles(knb, u);
-			}
-			if (u.getRelays().contains(RelayType.EMAILS)) {
-				this.processEmails(knb, u);
-			}
-			if (u.getRelays().contains(RelayType.NOTES)) {
-				this.processGrades(knb, u);
-			}
+			METRICS_PROCESS_TIME.time(() -> {
+				if (u.getRelays().contains(RelayType.ARTICLES)) {
+					this.processArticles(knb, u);
+				}
+				if (u.getRelays().contains(RelayType.EMAILS)) {
+					this.processEmails(knb, u);
+				}
+				if (u.getRelays().contains(RelayType.NOTES)) {
+					this.processGrades(knb, u);
+				}
+			});
 		});
 	}
 

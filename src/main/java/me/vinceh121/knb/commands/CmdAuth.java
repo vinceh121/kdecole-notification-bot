@@ -52,7 +52,7 @@ public class CmdAuth extends AbstractCommand {
 			chan.sendMessage("Connecté en tant que "
 					+ info.getNom()
 					+ "\n"
-					+ "Vous devez maintenant configurer votre intégration").queue();
+					+ "Vous pouvez maintenant configurer votre intégration").queue();
 			return null;
 		});
 	}

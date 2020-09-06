@@ -18,6 +18,8 @@ import java.util.concurrent.CompletableFuture;
 import javax.security.auth.login.LoginException;
 
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.Conventions;
@@ -55,6 +57,8 @@ import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import me.vinceh121.knb.commands.CmdApropos;
 import me.vinceh121.knb.commands.CmdAuth;
 import me.vinceh121.knb.commands.CmdHelp;
+import me.vinceh121.knb.commands.CmdLogout;
+import me.vinceh121.knb.commands.CmdOthers;
 import me.vinceh121.knb.commands.CmdPing;
 import me.vinceh121.knb.commands.CmdRelay;
 import me.vinceh121.knb.commands.CmdSetPlaying;
@@ -69,6 +73,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 public class Knb {
 	private static final Logger LOG = LoggerFactory.getLogger(Knb.class);
 	private static final Collection<GatewayIntent> INTENTS = Arrays.asList(GUILD_MESSAGES, DIRECT_MESSAGES);
+	private final HttpClient http;
 	private final ObjectMapper mapper;
 	private final Config config;
 	private final Scheduler scheduler;
@@ -100,6 +105,10 @@ public class Knb {
 			Knb.LOG.error("Error while loading config.json: ", e1);
 			throw new RuntimeException(e1);
 		}
+
+		this.http = HttpClients.custom()
+				.setUserAgent("Kdecole Notification Bot/0.0.1 (github.com/vinceh121/kdecole-notification-bot)")
+				.build();
 
 		Knb.LOG.debug("Starting scheduler");
 		try {
@@ -278,8 +287,8 @@ public class Knb {
 		this.scheduler.triggerJob(this.job.getKey());
 	}
 
-	private JKdecole getKdecole() {
-		return new JKdecole("Kdecole Notification Bot/0.0.1 (github.com/vinceh121/kdecole-notification-bot)");
+	public JKdecole getKdecole() {
+		return new JKdecole(this.http);
 	}
 
 	private void registerCommands() {
@@ -291,6 +300,8 @@ public class Knb {
 		this.registerCmd(new CmdSetPlaying(this));
 		this.registerCmd(new CmdApropos(this));
 		this.registerCmd(new CmdRelay(this));
+		this.registerCmd(new CmdLogout(this));
+		this.registerCmd(new CmdOthers(this));
 	}
 
 	private void registerCmd(final AbstractCommand cmd) {

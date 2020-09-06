@@ -7,6 +7,7 @@ import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
 import me.vinceh121.knb.RelayType;
+import net.dv8tion.jda.api.EmbedBuilder;
 
 public class CmdRelay extends AbstractCommand {
 
@@ -51,21 +52,12 @@ public class CmdRelay extends AbstractCommand {
 	}
 
 	private void printCurrent(final CommandContext ctx) {
-		final StringBuilder sb = new StringBuilder();
-		sb.append("```sas\n");
+		final EmbedBuilder build = new EmbedBuilder();
+		build.setTitle("Relais");
 		for (final RelayType r : RelayType.values()) {
-			if (ctx.getUserInstance().getRelays().contains(r)) {
-				sb.append("%" + r.name());
-			} else {
-				sb.append("&" + r.name());
-			}
-			sb.append("\n");
+			build.addField(r.name(), ctx.getUserInstance().getRelays().contains(r) ? "ON" : "OFF", true);
 		}
-		sb.append("\n\n\nLégende:\n");
-		sb.append("%active\n");
-		sb.append("&désactive\n");
-		sb.append("```\n");
-		ctx.getEvent().getChannel().sendMessage(sb.toString()).queue();
+		ctx.getEvent().getChannel().sendMessage(build.build()).queue();
 	}
 
 	@Override

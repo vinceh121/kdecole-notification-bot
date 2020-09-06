@@ -25,7 +25,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(CommandListener.class);
-	private static final Counter METRICS_COMMANDS = Counter.build("knb_cmds", "Counts all command calls").register();
+	private static final Counter METRICS_COMMANDS
+			= Counter.build("knb_cmds", "Counts all command calls").labelNames("cmd").register();
 	private static final Pattern SPLIT_PATTERN = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 	private final Knb knb;
 	private final Map<String, AbstractCommand> map;
@@ -80,7 +81,7 @@ public class CommandListener extends ListenerAdapter {
 		}
 
 		METRICS_COMMANDS.labels(cmd.getName()).inc();
-		
+
 		LOG.debug("Cmd Exec {} {}", cmd.getName(), args);
 
 		if (cmd.isAdminCommand() && !this.knb.isUserAdmin(event.getAuthor().getIdLong())) {

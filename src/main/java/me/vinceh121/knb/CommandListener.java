@@ -70,6 +70,9 @@ public class CommandListener extends ListenerAdapter {
 				args.add(regexMatcher.group());
 			}
 		}
+		
+		if (args.size() < 3)
+			return;
 
 		args.remove(0); // remove ping
 		final String rawCmd = args.remove(0).toLowerCase(); // remove and retrieve called cmd

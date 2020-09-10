@@ -42,9 +42,4 @@ public class CmdPing extends AbstractCommand {
 							+ "ms\n").queue();
 				});
 	}
-
-	@Override
-	public boolean isAdminCommand() {
-		return true;
-	}
 }

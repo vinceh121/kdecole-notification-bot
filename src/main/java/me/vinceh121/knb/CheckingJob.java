@@ -19,6 +19,7 @@ import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -37,6 +38,8 @@ public class CheckingJob implements Job {
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
 		LOG.info("Checking job called");
 		final Knb knb = (Knb) context.getMergedJobDataMap().get("knb");
+		final Activity oldAct = knb.getJda().getPresence().getActivity();
+		knb.getJda().getPresence().setActivity(Activity.watching("for new articles"));
 		knb.getAllValidInstances().forEach(u -> {
 			METRICS_PROCESS_TIME.time(() -> {
 				if (u.getRelays().contains(RelayType.ARTICLES)) {
@@ -50,6 +53,7 @@ public class CheckingJob implements Job {
 				}
 			});
 		});
+		knb.getJda().getPresence().setActivity(oldAct);
 	}
 
 	private void processGrades(final Knb knb, final UserInstance ui) {

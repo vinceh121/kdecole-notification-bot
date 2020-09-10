@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.MentionType;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -43,11 +44,15 @@ public class CommandListener extends ListenerAdapter {
 	@Override
 	public void onGuildJoin(final GuildJoinEvent event) {
 		final Guild g = event.getGuild();
-		CommandListener.LOG.info("Added to guild: " + g);
+		LOG.info("Added to guild: " + g);
 		try {
-			g.getDefaultChannel()
-					.sendMessage("Merci d'utiliser Kdecole Notification Bot!\n" + "Pingez moi pour m'initialiser")
-					.queue();
+			final TextChannel ch;
+			if (g.getDefaultChannel() != null) {
+				ch = g.getDefaultChannel();
+			} else {
+				ch = g.getTextChannels().get(0);
+			}
+			ch.sendMessage("Merci d'utiliser Kdecole Notification Bot!\n" + "Pingez moi pour m'initialiser").queue();
 		} catch (final InsufficientPermissionException e) {} // Fail silently on no perm
 	}
 
@@ -70,9 +75,10 @@ public class CommandListener extends ListenerAdapter {
 				args.add(regexMatcher.group());
 			}
 		}
-		
-		if (args.size() < 3)
+
+		if (args.size() < 2) {
 			return;
+		}
 
 		args.remove(0); // remove ping
 		final String rawCmd = args.remove(0).toLowerCase(); // remove and retrieve called cmd

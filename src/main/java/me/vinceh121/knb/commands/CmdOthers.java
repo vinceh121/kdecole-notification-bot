@@ -39,4 +39,8 @@ public class CmdOthers extends AbstractCommand {
 		return true;
 	}
 
+	@Override
+	public String getHelp() {
+		return "Autorise/Interdit l'accès en modification aux autre modérateurs du serveur à cette intégration";
+	}
 }

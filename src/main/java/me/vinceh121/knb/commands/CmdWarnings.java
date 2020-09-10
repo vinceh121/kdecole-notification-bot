@@ -24,4 +24,9 @@ public class CmdWarnings extends AbstractCommand {
 	public boolean isAuthenticatedCommand() {
 		return true;
 	}
+
+	@Override
+	public String getHelp() {
+		return "Réactive l'envoie d'avertissements en cas d'échec sur la récupération";
+	}
 }

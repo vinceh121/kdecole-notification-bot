@@ -54,8 +54,10 @@ import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
+import me.vinceh121.knb.commands.CmdAdmins;
 import me.vinceh121.knb.commands.CmdApropos;
 import me.vinceh121.knb.commands.CmdAuth;
+import me.vinceh121.knb.commands.CmdDataRequest;
 import me.vinceh121.knb.commands.CmdHelp;
 import me.vinceh121.knb.commands.CmdLogout;
 import me.vinceh121.knb.commands.CmdOthers;
@@ -302,6 +304,8 @@ public class Knb {
 		this.registerCmd(new CmdRelay(this));
 		this.registerCmd(new CmdLogout(this));
 		this.registerCmd(new CmdOthers(this));
+		this.registerCmd(new CmdAdmins(this));
+		this.registerCmd(new CmdDataRequest(this));
 	}
 
 	private void registerCmd(final AbstractCommand cmd) {
@@ -333,5 +337,9 @@ public class Knb {
 
 	public MongoCollection<UserInstance> getColInstances() {
 		return this.colInstances;
+	}
+
+	public Config getConfig() {
+		return config;
 	}
 }

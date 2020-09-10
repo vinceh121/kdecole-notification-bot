@@ -107,23 +107,35 @@ public class CommandListener extends ListenerAdapter {
 			return;
 		}
 
+		ctx.setAdminCalled(this.knb.isUserAdmin(event.getAuthor().getIdLong()));
+
 		if (cmd.isAuthenticatedCommand()) {
 			final UserInstance ui = this.knb.getUserInstance(Filters.eq("channelId", event.getChannel().getId()));
+			ctx.setUserInstance(ui);
 			if (ui == null) {
 				event.getChannel().sendMessage("Il n'y a pas d'intégration dans ce canal").queue();
 				return;
 			}
-			if (!ui.isAllowOthers() && !event.getAuthor().getId().equals(ui.getAdderId())) {
-				event.getChannel().sendMessage("Seul l'auteur de l'intégration peut utiliser cette commande").queue();
-				return;
-			}
-			if (!event.getMember().hasPermission(event.getChannel(), Permission.MANAGE_CHANNEL)) {
+			if (!event.getAuthor().getId().equals(ui.getAdderId()) && ctx.isAdminCalled()) {
 				event.getChannel()
-						.sendMessage("Vous devez avoir la permission `Gérer les salons` pour utiliser cette commande")
+						.sendMessage(":shield: Used admin privileges to bypass authenticated instance access.")
 						.queue();
-				return;
+				LOG.info("Admin {} bypassed authenticated command {} : {}", event.getAuthor(), cmd.getName(), args);
+			} else {
+				if (!ui.isAllowOthers() && !event.getAuthor().getId().equals(ui.getAdderId())) {
+					event.getChannel()
+							.sendMessage("Seul l'auteur de l'intégration peut utiliser cette commande")
+							.queue();
+					return;
+				}
+				if (!event.getMember().hasPermission(event.getChannel(), Permission.MANAGE_CHANNEL)) {
+					event.getChannel()
+							.sendMessage(
+									"Vous devez avoir la permission `Gérer les salons` pour utiliser cette commande")
+							.queue();
+					return;
+				}
 			}
-			ctx.setUserInstance(ui);
 		}
 
 		cmd.execute(ctx).exceptionally(t -> {

@@ -34,12 +34,17 @@ public class CmdPing extends AbstractCommand {
 						+ " whole system is basically GNU with Linux added, or GNU/Linux. All the so-called \"Linux\""
 						+ " distributions are really distributions of GNU/Linux.")
 				.queue(msg -> {
-					msg.editMessage("Message pin: "
+					msg.editMessage("REST ping: "
 							+ (System.currentTimeMillis() - start)
 							+ "ms\n"
-							+ "JDA ping: "
+							+ "Gateway ping: "
 							+ this.knb.getJda().getGatewayPing()
 							+ "ms\n").queue();
 				});
+	}
+
+	@Override
+	public String getHelp() {
+		return "Teste la connexion du bot";
 	}
 }

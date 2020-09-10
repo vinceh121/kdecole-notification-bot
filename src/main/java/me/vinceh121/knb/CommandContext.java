@@ -8,6 +8,7 @@ public class CommandContext {
 	private GuildMessageReceivedEvent event;
 	private List<String> args;
 	private UserInstance userInstance;
+	private boolean adminCalled;
 
 	public GuildMessageReceivedEvent getEvent() {
 		return this.event;
@@ -31,5 +32,13 @@ public class CommandContext {
 
 	public void setUserInstance(final UserInstance userInstance) {
 		this.userInstance = userInstance;
+	}
+
+	public boolean isAdminCalled() {
+		return adminCalled;
+	}
+
+	public void setAdminCalled(boolean adminCalled) {
+		this.adminCalled = adminCalled;
 	}
 }

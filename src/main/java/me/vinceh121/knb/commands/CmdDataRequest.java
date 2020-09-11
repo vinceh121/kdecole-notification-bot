@@ -28,6 +28,10 @@ public class CmdDataRequest extends AbstractCommand {
 			} else {
 				requesterId = arg;
 			}
+			ctx.getEvent()
+					.getChannel()
+					.sendMessage(":shield: Used admin permissions to trigger datarequest for " + requesterId)
+					.queue();
 		} else {
 			requesterId = ctx.getEvent().getAuthor().getId();
 		}

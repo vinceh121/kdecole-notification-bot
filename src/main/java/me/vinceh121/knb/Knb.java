@@ -60,6 +60,7 @@ import me.vinceh121.knb.commands.CmdAuth;
 import me.vinceh121.knb.commands.CmdDataRequest;
 import me.vinceh121.knb.commands.CmdHelp;
 import me.vinceh121.knb.commands.CmdLogout;
+import me.vinceh121.knb.commands.CmdMove;
 import me.vinceh121.knb.commands.CmdOthers;
 import me.vinceh121.knb.commands.CmdPing;
 import me.vinceh121.knb.commands.CmdRelay;
@@ -306,6 +307,7 @@ public class Knb {
 		this.registerCmd(new CmdOthers(this));
 		this.registerCmd(new CmdAdmins(this));
 		this.registerCmd(new CmdDataRequest(this));
+		this.registerCmd(new CmdMove(this));
 	}
 
 	private void registerCmd(final AbstractCommand cmd) {

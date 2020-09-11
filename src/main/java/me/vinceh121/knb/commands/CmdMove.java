@@ -12,14 +12,15 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class CmdMove extends AbstractCommand {
 
-	public CmdMove(Knb knb) {
+	public CmdMove(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	public boolean validateSyntax(CommandContext ctx) {
-		if (ctx.getArgs().size() != 1)
+	public boolean validateSyntax(final CommandContext ctx) {
+		if (ctx.getArgs().size() != 1) {
 			return false;
+		}
 		try {
 			Long.parseLong(ctx.getArgs().get(0));
 		} catch (final NumberFormatException e) {
@@ -29,7 +30,7 @@ public class CmdMove extends AbstractCommand {
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final TextChannel toChan = this.knb.getJda().getTextChannelById(ctx.getArgs().get(0));
 		final Guild toGuild = toChan.getGuild();
 		if (!toGuild.getId().equals(ctx.getUserInstance().getGuildId())) {

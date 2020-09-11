@@ -342,6 +342,6 @@ public class Knb {
 	}
 
 	public Config getConfig() {
-		return config;
+		return this.config;
 	}
 }

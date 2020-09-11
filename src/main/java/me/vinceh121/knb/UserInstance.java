@@ -78,18 +78,18 @@ public class UserInstance {
 	}
 
 	public List<RelayType> getRelays() {
-		return relays;
+		return this.relays;
 	}
 
-	public void setRelays(List<RelayType> relays) {
+	public void setRelays(final List<RelayType> relays) {
 		this.relays = relays;
 	}
 
 	public String getGuildId() {
-		return guildId;
+		return this.guildId;
 	}
 
-	public void setGuildId(String guildId) {
+	public void setGuildId(final String guildId) {
 		this.guildId = guildId;
 	}
 

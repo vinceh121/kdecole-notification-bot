@@ -7,18 +7,18 @@ import net.dv8tion.jda.api.entities.User;
 
 public class CmdAdmins extends AbstractCommand {
 
-	public CmdAdmins(Knb knb) {
+	public CmdAdmins(final Knb knb) {
 		super(knb);
 	}
-	
+
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(":shield: Administrateurs :\n");
 		for (final long id : this.knb.getConfig().getAdmins()) {
-			final User user = knb.getJda().retrieveUserById(id).complete();
+			final User user = this.knb.getJda().retrieveUserById(id).complete();
 			sb.append("\t");
-			sb.append(user == null ? ("<@" + id + ">") : user.getAsTag() + "\n");
+			sb.append(user == null ? "<@" + id + ">" : user.getAsTag() + "\n");
 		}
 		ctx.getEvent().getChannel().sendMessage(sb.toString()).queue();
 	}

@@ -17,12 +17,12 @@ public class CmdApropos extends AbstractCommand {
 			= Arrays.asList(new Field("Hotel", "Trivago", INLINE), new Field("Astolfo", "Cute", INLINE),
 					new Field("weeb", "services", INLINE), new Field("Stallman", "Was right", INLINE));
 
-	public CmdApropos(Knb knb) {
+	public CmdApropos(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final EmbedBuilder build = new EmbedBuilder();
 		build.setAuthor("vinceh121", "https://vinceh121.me", "https://vinceh121.me/assets/profile.png");
 		build.setColor(0x3f51b5);

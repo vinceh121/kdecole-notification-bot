@@ -35,10 +35,10 @@ public class CommandContext {
 	}
 
 	public boolean isAdminCalled() {
-		return adminCalled;
+		return this.adminCalled;
 	}
 
-	public void setAdminCalled(boolean adminCalled) {
+	public void setAdminCalled(final boolean adminCalled) {
 		this.adminCalled = adminCalled;
 	}
 }

@@ -11,14 +11,15 @@ import net.dv8tion.jda.api.EmbedBuilder;
 
 public class CmdRelay extends AbstractCommand {
 
-	public CmdRelay(Knb knb) {
+	public CmdRelay(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	public boolean validateSyntax(CommandContext ctx) {
-		if (ctx.getArgs().size() == 0)
+	public boolean validateSyntax(final CommandContext ctx) {
+		if (ctx.getArgs().size() == 0) {
 			return true;
+		}
 		if (ctx.getArgs().size() >= 1) {
 			try {
 				RelayType.valueOf(ctx.getArgs().get(0).toUpperCase());

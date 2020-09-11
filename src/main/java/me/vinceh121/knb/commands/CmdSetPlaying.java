@@ -37,7 +37,7 @@ public class CmdSetPlaying extends AbstractCommand {
 		}
 
 		try {
-			knb.getJda()
+			this.knb.getJda()
 					.getPresence()
 					.setActivity(
 							Activity.of(ActivityType.valueOf(ctx.getArgs().get(0)), ctx.getArgs().get(1), streamUrl));

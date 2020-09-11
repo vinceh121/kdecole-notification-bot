@@ -15,7 +15,7 @@ public class CmdTriggerAll extends AbstractCommand {
 	@Override
 	protected void executeSync(final CommandContext ctx) {
 		try {
-			knb.manualTriggerAll();
+			this.knb.manualTriggerAll();
 			ctx.getEvent()
 					.getChannel()
 					.sendMessage(

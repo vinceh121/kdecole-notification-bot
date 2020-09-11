@@ -14,12 +14,12 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class CmdDataRequest extends AbstractCommand {
 
-	public CmdDataRequest(Knb knb) {
+	public CmdDataRequest(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final String requesterId;
 		if (ctx.isAdminCalled() && ctx.getArgs().size() >= 1) {
 			final String arg = ctx.getArgs().get(0);
@@ -36,7 +36,7 @@ public class CmdDataRequest extends AbstractCommand {
 			requesterId = ctx.getEvent().getAuthor().getId();
 		}
 
-		knb.getJda().retrieveUserById(requesterId).queue(user -> {
+		this.knb.getJda().retrieveUserById(requesterId).queue(user -> {
 			user.openPrivateChannel().queue(privChan -> {
 
 				final StringBuilder headSb = new StringBuilder();

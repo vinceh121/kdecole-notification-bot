@@ -19,7 +19,8 @@ public class CmdTriggerAll extends AbstractCommand {
 			ctx.getEvent()
 					.getChannel()
 					.sendMessage(
-							"https://cdn.discordapp.com/attachments/579635091894960147/749352437726445729/unknown.png");
+							"https://cdn.discordapp.com/attachments/579635091894960147/749352437726445729/unknown.png")
+					.queue();
 		} catch (final SchedulerException e) {
 			ctx.getEvent().getChannel().sendMessage("Error with manual trigger: " + e);
 		}

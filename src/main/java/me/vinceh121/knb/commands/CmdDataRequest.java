@@ -41,6 +41,7 @@ public class CmdDataRequest extends AbstractCommand {
 
 				final StringBuilder headSb = new StringBuilder();
 				headSb.append(":file_cabinet: **Votre export de données**\n");
+				headSb.append("\t:shield: Export déclanché par un administrateur\n");
 				headSb.append("\tDate: " + new Date().toString() + "\n\n");
 				privChan.sendMessage(headSb.toString()).queue();
 

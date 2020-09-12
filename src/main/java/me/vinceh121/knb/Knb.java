@@ -5,11 +5,13 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,19 +57,6 @@ import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
-import me.vinceh121.knb.commands.CmdAdmins;
-import me.vinceh121.knb.commands.CmdApropos;
-import me.vinceh121.knb.commands.CmdAuth;
-import me.vinceh121.knb.commands.CmdDataRequest;
-import me.vinceh121.knb.commands.CmdHelp;
-import me.vinceh121.knb.commands.CmdLogout;
-import me.vinceh121.knb.commands.CmdMove;
-import me.vinceh121.knb.commands.CmdOthers;
-import me.vinceh121.knb.commands.CmdPing;
-import me.vinceh121.knb.commands.CmdRelay;
-import me.vinceh121.knb.commands.CmdSetPlaying;
-import me.vinceh121.knb.commands.CmdTriggerAll;
-import me.vinceh121.knb.commands.CmdWarnings;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -86,7 +76,7 @@ public class Knb {
 	private final MongoDatabase mongoDb;
 	private final MongoCollection<UserInstance> colInstances;
 	private final JobDetail job;
-	private final Map<String, AbstractCommand> cmdMap = new Hashtable<>();
+	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
 
 	public static void main(final String[] args) {
 		DefaultExports.initialize();
@@ -164,7 +154,13 @@ public class Knb {
 
 		Knb.LOG.info("Connected to Discord. Ping: {}ms", this.jda.getGatewayPing());
 
-		this.registerCommands();
+		try {
+			this.registerCommands();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			LOG.error("Failed to load commands", e);
+			throw new RuntimeException(e);
+		}
 		this.regisListener = new CommandListener(this, this.cmdMap);
 
 		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
@@ -294,24 +290,16 @@ public class Knb {
 		return new JKdecole(this.http);
 	}
 
-	private void registerCommands() {
-		this.registerCmd(new CmdAuth(this));
-		this.registerCmd(new CmdHelp(this));
-		this.registerCmd(new CmdWarnings(this));
-		this.registerCmd(new CmdPing(this));
-		this.registerCmd(new CmdTriggerAll(this));
-		this.registerCmd(new CmdSetPlaying(this));
-		this.registerCmd(new CmdApropos(this));
-		this.registerCmd(new CmdRelay(this));
-		this.registerCmd(new CmdLogout(this));
-		this.registerCmd(new CmdOthers(this));
-		this.registerCmd(new CmdAdmins(this));
-		this.registerCmd(new CmdDataRequest(this));
-		this.registerCmd(new CmdMove(this));
-	}
+	private void registerCommands() throws InstantiationException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException {
+		final Reflections reflec = new Reflections("me.vinceh121.knb.commands");
 
-	private void registerCmd(final AbstractCommand cmd) {
-		this.cmdMap.put(cmd.getName(), cmd);
+		for (final Class<? extends AbstractCommand> cmds : reflec.getSubTypesOf(AbstractCommand.class)) {
+			final AbstractCommand c = cmds.getConstructor(Knb.class).newInstance(this);
+			this.cmdMap.put(c.getName(), c);
+		}
+
+		LOG.info("Loaded {} commands", this.cmdMap.size());
 	}
 
 	public void shutdown() throws Exception {

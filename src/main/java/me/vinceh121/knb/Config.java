@@ -3,7 +3,7 @@ package me.vinceh121.knb;
 import java.util.Collection;
 
 public class Config {
-	private String token, mongo;
+	private String token, mongo, feedbackChannelId;
 	private int delay;
 	private Collection<Long> admins;
 
@@ -39,4 +39,11 @@ public class Config {
 		this.admins = admins;
 	}
 
+	public String getFeedbackChannelId() {
+		return feedbackChannelId;
+	}
+
+	public void setFeedbackChannelId(String feedbackChannelId) {
+		this.feedbackChannelId = feedbackChannelId;
+	}
 }

@@ -12,7 +12,6 @@ public class CmdHelp extends AbstractCommand {
 
 	public CmdHelp(final Knb knb) {
 		super(knb);
-
 	}
 
 	@Override

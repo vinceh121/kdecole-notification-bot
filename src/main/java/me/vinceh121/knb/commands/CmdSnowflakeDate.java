@@ -8,12 +8,12 @@ import me.vinceh121.knb.Knb;
 
 public class CmdSnowflakeDate extends AbstractCommand {
 
-	public CmdSnowflakeDate(Knb knb) {
+	public CmdSnowflakeDate(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	public boolean validateSyntax(CommandContext ctx) {
+	public boolean validateSyntax(final CommandContext ctx) {
 		if (ctx.getArgs().size() != 1) {
 			return false;
 		}
@@ -26,7 +26,7 @@ public class CmdSnowflakeDate extends AbstractCommand {
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final long snowflake = Long.parseLong(ctx.getArgs().get(0));
 		final long time = (snowflake >> 22L) + 1420070400000L;
 		final Date date = new Date(time);

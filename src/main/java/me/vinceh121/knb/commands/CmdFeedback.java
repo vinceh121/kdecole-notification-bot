@@ -11,17 +11,17 @@ import net.dv8tion.jda.api.entities.User;
 
 public class CmdFeedback extends AbstractCommand {
 
-	public CmdFeedback(Knb knb) {
+	public CmdFeedback(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	public boolean validateSyntax(CommandContext ctx) {
+	public boolean validateSyntax(final CommandContext ctx) {
 		return String.join(" ", ctx.getArgs()).length() <= 2048;
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		final TextChannel feedbackChannel
 				= this.knb.getJda().getTextChannelById(this.knb.getConfig().getFeedbackChannelId());
 

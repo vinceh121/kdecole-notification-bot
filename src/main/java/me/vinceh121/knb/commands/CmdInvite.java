@@ -6,12 +6,12 @@ import me.vinceh121.knb.Knb;
 
 public class CmdInvite extends AbstractCommand {
 
-	public CmdInvite(Knb knb) {
+	public CmdInvite(final Knb knb) {
 		super(knb);
 	}
 
 	@Override
-	protected void executeSync(CommandContext ctx) {
+	protected void executeSync(final CommandContext ctx) {
 		ctx.getEvent()
 				.getChannel()
 				.sendMessage(

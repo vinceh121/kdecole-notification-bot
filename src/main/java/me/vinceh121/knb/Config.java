@@ -40,10 +40,10 @@ public class Config {
 	}
 
 	public String getFeedbackChannelId() {
-		return feedbackChannelId;
+		return this.feedbackChannelId;
 	}
 
-	public void setFeedbackChannelId(String feedbackChannelId) {
+	public void setFeedbackChannelId(final String feedbackChannelId) {
 		this.feedbackChannelId = feedbackChannelId;
 	}
 }

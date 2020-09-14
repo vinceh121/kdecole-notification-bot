@@ -36,7 +36,6 @@ public class CheckingJob implements Job {
 
 	@Override
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
-		LOG.info("Checking job called");
 		final Knb knb = (Knb) context.getMergedJobDataMap().get("knb");
 		final Activity oldAct = knb.getJda().getPresence().getActivity();
 		knb.getJda().getPresence().setActivity(Activity.watching("for new articles"));

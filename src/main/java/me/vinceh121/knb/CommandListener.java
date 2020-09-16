@@ -31,6 +31,7 @@ public class CommandListener extends ListenerAdapter {
 	private static final Pattern SPLIT_PATTERN = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 	private final Knb knb;
 	private final Map<String, AbstractCommand> map;
+	private boolean logCommands;
 
 	public CommandListener(final Knb knb) {
 		this(knb, new Hashtable<>());
@@ -91,7 +92,8 @@ public class CommandListener extends ListenerAdapter {
 
 		METRICS_COMMANDS.labels(cmd.getName()).inc();
 
-		LOG.debug("Cmd Exec {} {}", cmd.getName(), args);
+		if (logCommands)
+			LOG.info("User {} Exec {} {}", msg.getAuthor(), cmd.getName(), args);
 
 		if (cmd.isAdminCommand() && !this.knb.isUserAdmin(event.getAuthor().getIdLong())) {
 			event.getChannel().sendMessage("Vous devez être admin du bot pour utiliser cette commande").queue();
@@ -149,5 +151,13 @@ public class CommandListener extends ListenerAdapter {
 	public void onGuildLeave(final GuildLeaveEvent event) {
 		LOG.info("Bot removed from guild " + event.getGuild());
 		this.knb.removeGuild(event.getGuild().getId());
+	}
+
+	public boolean isLogCommands() {
+		return logCommands;
+	}
+
+	public void setLogCommands(boolean logCommands) {
+		this.logCommands = logCommands;
 	}
 }

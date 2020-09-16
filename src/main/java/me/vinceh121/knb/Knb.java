@@ -332,4 +332,8 @@ public class Knb {
 	public Config getConfig() {
 		return this.config;
 	}
+
+	public CommandListener getRegisListener() {
+		return regisListener;
+	}
 }

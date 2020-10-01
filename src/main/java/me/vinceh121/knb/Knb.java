@@ -55,6 +55,8 @@ import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
+import me.vinceh121.jkdecole.entities.grades.Grade;
+import me.vinceh121.jkdecole.entities.grades.GradeMessage;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import net.dv8tion.jda.api.JDA;
@@ -272,6 +274,29 @@ public class Knb {
 		}
 
 		return updatedComs;
+	}
+
+	public List<Grade> getNewGradesForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
+		final JKdecole kdecole = this.getKdecole();
+		kdecole.setToken(ui.getKdecoleToken());
+		kdecole.setEndpoint(ui.getEndpoint());
+
+		final GradeMessage msg = kdecole.getStudentGrades();
+
+		if (!msg.isGradeModulesEnabled()) {
+			throw new UnsupportedOperationException("Grades modules disabled");
+		}
+
+		final List<Grade> grades = msg.getGrades();
+		final List<Grade> updatedGrades = new ArrayList<>();
+
+		for (final Grade g : grades) {
+			if (ui.getLastCheck().before(g.getDate())) {
+				updatedGrades.add(g);
+			}
+		}
+
+		return updatedGrades;
 	}
 
 	public UserInfo getUserInfoForInstace(final UserInstance ui)

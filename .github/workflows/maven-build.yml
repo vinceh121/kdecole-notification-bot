@@ -31,5 +31,5 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
-        source: "target/*.jar"
+        source: "target/kdecole-notification-bot-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
         target: "/usr/bin/kdecole-bot"

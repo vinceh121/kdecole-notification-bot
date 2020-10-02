@@ -26,7 +26,7 @@ jobs:
       with:
         name: target
         path: target/
-    - uses: appleboy/scp-action@v0.1.1
+    - uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}

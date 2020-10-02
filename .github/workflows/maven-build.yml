@@ -26,10 +26,11 @@ jobs:
       with:
         name: target
         path: target/
+    - run: mv target/kdecole-notification-bot-0.0.1-SNAPSHOT-jar-with-dependencies.jar kdecole-bot
     - uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
-        source: "target/kdecole-notification-bot-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
-        target: "/usr/bin/kdecole-bot"
+        source: "kdecole-bot"
+        target: "/usr/bin"

@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>com.github.vinceh121</groupId>
 			<artifactId>jkdecole</artifactId>
-			<version>5d098f00b3d9caa163966c1d7ccc32aec25756ed</version>
+			<version>a9377d48e0126debdbc5760e0a1b01f4a76370a4</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.quartz-scheduler/quartz -->
 		<dependency>

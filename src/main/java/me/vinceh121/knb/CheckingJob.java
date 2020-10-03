@@ -173,7 +173,7 @@ public class CheckingJob implements Job {
 	}
 
 	private void sendWarning(final Knb knb, final TextChannel chan, final UserInstance ui, final String text) {
-		if (ui.isShowWarnings()) {
+		if (ui.isShowWarnings() || ui.isAlwaysShowWarnings()) {
 			chan.sendMessage(text
 					+ "\n\n"
 					+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")

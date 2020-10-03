@@ -10,7 +10,7 @@ public class UserInstance {
 	private ObjectId id;
 	private String kdecoleToken, adderId, channelId, guildId, endpoint;
 	private Date lastCheck = new Date(0L);
-	private boolean showWarnings = true, allowOthers = false;
+	private boolean showWarnings = true, allowOthers = false, alwaysShowWarnings = false;
 	private List<RelayType> relays = new ArrayList<>();
 
 	public ObjectId getId() {
@@ -75,6 +75,14 @@ public class UserInstance {
 
 	public void setAllowOthers(final boolean allowOthers) {
 		this.allowOthers = allowOthers;
+	}
+
+	public boolean isAlwaysShowWarnings() {
+		return alwaysShowWarnings;
+	}
+
+	public void setAlwaysShowWarnings(boolean alwaysShowWarnings) {
+		this.alwaysShowWarnings = alwaysShowWarnings;
 	}
 
 	public List<RelayType> getRelays() {

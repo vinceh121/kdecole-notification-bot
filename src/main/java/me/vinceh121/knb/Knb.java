@@ -210,12 +210,13 @@ public class Knb {
 	}
 
 	public CompletableFuture<UserInfo> setupUserInstance(final UserInstance ui, final String username,
-			final String password) {
+			final String password, final String endpoint) {
 		return CompletableFuture.supplyAsync(() -> {
 			final JKdecole kdecole = this.getKdecole();
+			kdecole.setEndpoint(endpoint);
 			boolean success = false;
 			try {
-				success = kdecole.login(username, password, true);
+				success = kdecole.login(username, password, false);
 			} catch (final IOException e) {
 				Knb.LOG.error("Error while logging into kdecole for instance " + ui.getId(), e);
 				throw new RuntimeException("Un erreur est survenue à la connection à l'ENT");

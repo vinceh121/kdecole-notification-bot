@@ -1,7 +1,10 @@
 package me.vinceh121.knb.commands;
 
+import java.util.List;
+
 import com.mongodb.client.model.Filters;
 
+import me.vinceh121.jkdecole.Endpoints;
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
@@ -38,12 +41,37 @@ public class CmdAuth extends AbstractCommand {
 			return;
 		}
 
+		final List<String> endpoints = Endpoints.getEndpoints(ctx.getArgs().get(1));
+
+		final String endpoint;
+		if (ctx.getArgs().size() >= 3) {
+			endpoint = endpoints.get(Integer.parseInt(ctx.getArgs().get(2)));
+		} else if (endpoints.size() == 1) {
+			endpoint = endpoints.get(0);
+		} else if (endpoints.size() > 1) {
+			final StringBuilder sb = new StringBuilder("Votre MDP correspond a plusieurs instances Kdecole. ; \n"
+					+ "Reenvoyez la commande `auth` avec l'argument le numéro de l'URL qui correspond a "
+					+ "celui de votre instance.\n\n");
+			for (int i = 0; i < endpoints.size(); i++) {
+				sb.append(i + "\t<" + endpoints.get(i) + ">\n");
+			}
+			ctx.getEvent().getChannel().sendMessage(sb.toString()).queue();
+			return;
+		} else {
+			ctx.getEvent()
+					.getChannel()
+					.sendMessage("Votre mot-de-passe n'a pas permi d'identifier une instance Kdecole.\n"
+							+ "Essayez la commande `endpoints` pour voir quelles instances sont acceptées")
+					.queue();
+			return;
+		}
+
 		ui = new UserInstance();
 		ui.setAdderId(mem.getId());
 		ui.setChannelId(chan.getId());
 		ui.setGuildId(chan.getGuild().getId());
 
-		this.knb.setupUserInstance(ui, ctx.getArgs().get(0), ctx.getArgs().get(1)).handleAsync((info, t) -> {
+		this.knb.setupUserInstance(ui, ctx.getArgs().get(0), ctx.getArgs().get(1), endpoint).handleAsync((info, t) -> {
 			if (t != null) {
 				chan.sendMessage("Kdecole n'est pas gentil: " + t.getMessage()).queue();
 				return null;

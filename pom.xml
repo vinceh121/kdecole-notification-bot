@@ -80,23 +80,30 @@
 			<artifactId>reflections</artifactId>
 			<version>0.9.12</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver -->
+
+		<!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
 		<dependency>
-			<groupId>io.prometheus</groupId>
-			<artifactId>simpleclient_httpserver</artifactId>
-			<version>0.9.0</version>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>4.1.13</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_hotspot -->
+		<!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-jvm -->
 		<dependency>
-			<groupId>io.prometheus</groupId>
-			<artifactId>simpleclient_hotspot</artifactId>
-			<version>0.9.0</version>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-jvm</artifactId>
+			<version>4.1.13</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_logback -->
+		<!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-graphite -->
 		<dependency>
-			<groupId>io.prometheus</groupId>
-			<artifactId>simpleclient_logback</artifactId>
-			<version>0.9.0</version>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-graphite</artifactId>
+			<version>4.1.13</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-logback -->
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-logback</artifactId>
+			<version>4.1.13</version>
 		</dependency>
 	</dependencies>
 	<build>

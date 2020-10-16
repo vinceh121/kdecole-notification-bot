@@ -6,6 +6,7 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,6 +17,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.security.auth.login.LoginException;
 
@@ -39,6 +41,12 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.graphite.Graphite;
+import com.codahale.metrics.graphite.GraphiteReporter;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,14 +59,13 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
-import io.prometheus.client.exporter.HTTPServer;
-import io.prometheus.client.hotspot.DefaultExports;
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.grades.Grade;
 import me.vinceh121.jkdecole.entities.grades.GradeMessage;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
+import me.vinceh121.knb.Config.MetricConfig;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -79,14 +86,9 @@ public class Knb {
 	private final MongoCollection<UserInstance> colInstances;
 	private final JobDetail job;
 	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
+	private final MetricRegistry metricRegistry = new MetricRegistry();
 
 	public static void main(final String[] args) {
-		DefaultExports.initialize();
-		try {
-			new HTTPServer("127.0.0.1", 8600, true);
-		} catch (final IOException e) {
-			LOG.error("Failed to start metrics server", e);
-		}
 		final Knb knb = new Knb();
 		knb.start();
 	}
@@ -100,6 +102,8 @@ public class Knb {
 			Knb.LOG.error("Error while loading config.json: ", e1);
 			throw new RuntimeException(e1);
 		}
+
+		this.initMetrics();
 
 		this.http = HttpClients.custom()
 				.setUserAgent("Kdecole Notification Bot/0.0.1 (github.com/vinceh121/kdecole-notification-bot)")
@@ -187,6 +191,27 @@ public class Knb {
 			LOG.error("Could not schedule checking job", e);
 			System.exit(-5);
 		}
+	}
+
+	private void initMetrics() {
+		if (this.config.getMetrics() == null)
+			return;
+
+		final MetricConfig metc = this.config.getMetrics();
+
+		LOG.info("Starting metrics");
+		this.metricRegistry.registerAll("knb-gc", new GarbageCollectorMetricSet());
+		this.metricRegistry.registerAll("knb-mem", new MemoryUsageGaugeSet());
+
+		final Graphite graphite = new Graphite(new InetSocketAddress(metc.getHost(), metc.getPort()));
+		final GraphiteReporter graphiteReporter = GraphiteReporter.forRegistry(this.metricRegistry)
+				.prefixedWith("knb")
+				.convertRatesTo(TimeUnit.MILLISECONDS)
+				.convertDurationsTo(TimeUnit.MILLISECONDS)
+				.filter(MetricFilter.ALL)
+				.build(graphite);
+
+		graphiteReporter.start(metc.getPeriod(), TimeUnit.MINUTES);
 	}
 
 	public void addUserInstance(final UserInstance ui) {
@@ -361,5 +386,9 @@ public class Knb {
 
 	public CommandListener getRegisListener() {
 		return regisListener;
+	}
+
+	public MetricRegistry getMetricRegistry() {
+		return metricRegistry;
 	}
 }

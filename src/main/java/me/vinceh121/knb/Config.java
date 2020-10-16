@@ -2,10 +2,13 @@ package me.vinceh121.knb;
 
 import java.util.Collection;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Config {
 	private String token, mongo, feedbackChannelId;
 	private int delay;
 	private Collection<Long> admins;
+	private MetricConfig metrics;
 
 	public String getToken() {
 		return this.token;
@@ -45,5 +48,46 @@ public class Config {
 
 	public void setFeedbackChannelId(final String feedbackChannelId) {
 		this.feedbackChannelId = feedbackChannelId;
+	}
+
+	@JsonProperty(required = false)
+	public MetricConfig getMetrics() {
+		return metrics;
+	}
+
+	@JsonProperty(required = false)
+	public void setMetrics(MetricConfig metrics) {
+		this.metrics = metrics;
+	}
+
+	public static class MetricConfig {
+		private String host;
+		private int port;
+		private long period;
+
+		public String getHost() {
+			return host;
+		}
+
+		public void setHost(String host) {
+			this.host = host;
+		}
+
+		public int getPort() {
+			return port;
+		}
+
+		public void setPort(int port) {
+			this.port = port;
+		}
+
+		public long getPeriod() {
+			return period;
+		}
+
+		public void setPeriod(long period) {
+			this.period = period;
+		}
+
 	}
 }

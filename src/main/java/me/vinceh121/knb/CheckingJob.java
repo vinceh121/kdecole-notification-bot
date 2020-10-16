@@ -11,10 +11,11 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.MetricRegistry;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
-import io.prometheus.client.Summary;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.grades.Grade;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
@@ -28,34 +29,37 @@ import net.dv8tion.jda.api.entities.TextChannel;
 public class CheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
 	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
-	private static final Summary METRICS_NEWS_COUNT
-			= Summary.build("knb_news_count", "Numbers of new articles").register();
-	private static final Summary METRICS_EMAILS_COUNT
-			= Summary.build("knb_emails_count", "Numbers of new emails").register();
-	private static final Summary METRICS_GRADES_COUNT
-			= Summary.build("knb_grades_count", "Numbers of new grades").register();
-	private static final Summary METRICS_PROCESS_TIME
-			= Summary.build("knb_process_time", "Time taken to process 1 instance").create();
+	private Histogram metricNewsCount, metricEmailsCount, metricGradesCount, metricProcessTime;
+
+	private void setupMetrics(final MetricRegistry regis) {
+		this.metricNewsCount = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "news", "count"));
+		this.metricEmailsCount = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "emails", "count"));
+		this.metricGradesCount = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "grades", "count"));
+		this.metricProcessTime = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "process", "time"));
+	}
 
 	@Override
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
 		final Knb knb = (Knb) context.getMergedJobDataMap().get("knb");
 		final Activity oldAct = knb.getJda().getPresence().getActivity();
 		knb.getJda().getPresence().setActivity(Activity.watching("for new articles"));
+
+		this.setupMetrics(knb.getMetricRegistry());
+
 		knb.getAllValidInstances().forEach(u -> {
-			METRICS_PROCESS_TIME.time(() -> {
-				if (u.getRelays().contains(RelayType.ARTICLES)) {
-					this.processArticles(knb, u);
-				}
-				if (u.getRelays().contains(RelayType.EMAILS)) {
-					this.processEmails(knb, u);
-				}
-				if (u.getRelays().contains(RelayType.NOTES)) {
-					this.processGrades(knb, u);
-				}
-				u.setLastCheck(new Date());
-				knb.updateUserInstance(u);
-			});
+			final long startTime = System.currentTimeMillis();
+			if (u.getRelays().contains(RelayType.ARTICLES)) {
+				this.processArticles(knb, u);
+			}
+			if (u.getRelays().contains(RelayType.EMAILS)) {
+				this.processEmails(knb, u);
+			}
+			if (u.getRelays().contains(RelayType.NOTES)) {
+				this.processGrades(knb, u);
+			}
+			u.setLastCheck(new Date());
+			knb.updateUserInstance(u);
+			metricProcessTime.update(System.currentTimeMillis() - startTime);
 		});
 		knb.getJda().getPresence().setActivity(oldAct);
 	}
@@ -74,7 +78,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		METRICS_GRADES_COUNT.observe(grades.size());
+		metricGradesCount.update(grades.size());
 
 		if (grades.size() == 0) {
 			return;
@@ -120,7 +124,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		METRICS_EMAILS_COUNT.observe(coms.size());
+		metricEmailsCount.update(coms.size());
 
 		if (coms.size() == 0) {
 			return;
@@ -138,7 +142,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		METRICS_NEWS_COUNT.observe(news.size());
+		metricNewsCount.update(news.size());
 
 		if (news.size() == 0) {
 			return;

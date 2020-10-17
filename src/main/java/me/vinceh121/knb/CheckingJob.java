@@ -32,10 +32,10 @@ public class CheckingJob implements Job {
 	private Histogram metricNewsCount, metricEmailsCount, metricGradesCount, metricProcessTime;
 
 	private void setupMetrics(final MetricRegistry regis) {
-		this.metricNewsCount = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "news", "count"));
-		this.metricEmailsCount = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "emails", "count"));
-		this.metricGradesCount = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "grades", "count"));
-		this.metricProcessTime = regis.histogram(MetricRegistry.name(CheckingJob.class, "check", "process", "time"));
+		this.metricNewsCount = regis.histogram(MetricRegistry.name("check", "news", "count"));
+		this.metricEmailsCount = regis.histogram(MetricRegistry.name("check", "emails", "count"));
+		this.metricGradesCount = regis.histogram(MetricRegistry.name("check", "grades", "count"));
+		this.metricProcessTime = regis.histogram(MetricRegistry.name("check", "process", "time"));
 	}
 
 	@Override

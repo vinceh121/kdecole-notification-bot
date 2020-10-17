@@ -149,7 +149,6 @@ public class CommandListener extends ListenerAdapter {
 	}
 
 	private Counter getCommandCounter(final String cmd) {
-		return this.knb.getMetricRegistry()
-				.counter(MetricRegistry.name(CommandListener.class, "command", "executed", cmd));
+		return this.knb.getMetricRegistry().counter(MetricRegistry.name("command", "executed", cmd));
 	}
 }

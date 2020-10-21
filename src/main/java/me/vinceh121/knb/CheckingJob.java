@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
@@ -29,13 +30,14 @@ import net.dv8tion.jda.api.entities.TextChannel;
 public class CheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
 	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
-	private Histogram metricNewsCount, metricEmailsCount, metricGradesCount, metricProcessTime;
+	private Histogram metricNewsCount, metricEmailsCount, metricGradesCount;
+	private Timer metricProcessTime;
 
 	private void setupMetrics(final MetricRegistry regis) {
 		this.metricNewsCount = regis.histogram(MetricRegistry.name("check", "news", "count"));
 		this.metricEmailsCount = regis.histogram(MetricRegistry.name("check", "emails", "count"));
 		this.metricGradesCount = regis.histogram(MetricRegistry.name("check", "grades", "count"));
-		this.metricProcessTime = regis.histogram(MetricRegistry.name("check", "process", "time"));
+		this.metricProcessTime = regis.timer(MetricRegistry.name("check", "process", "time"));
 	}
 
 	@Override
@@ -47,19 +49,19 @@ public class CheckingJob implements Job {
 		this.setupMetrics(knb.getMetricRegistry());
 
 		knb.getAllValidInstances().forEach(u -> {
-			final long startTime = System.currentTimeMillis();
-			if (u.getRelays().contains(RelayType.ARTICLES)) {
-				this.processArticles(knb, u);
-			}
-			if (u.getRelays().contains(RelayType.EMAILS)) {
-				this.processEmails(knb, u);
-			}
-			if (u.getRelays().contains(RelayType.NOTES)) {
-				this.processGrades(knb, u);
-			}
-			u.setLastCheck(new Date());
-			knb.updateUserInstance(u);
-			metricProcessTime.update(System.currentTimeMillis() - startTime);
+			metricProcessTime.time(() -> {
+				if (u.getRelays().contains(RelayType.ARTICLES)) {
+					this.processArticles(knb, u);
+				}
+				if (u.getRelays().contains(RelayType.EMAILS)) {
+					this.processEmails(knb, u);
+				}
+				if (u.getRelays().contains(RelayType.NOTES)) {
+					this.processGrades(knb, u);
+				}
+				u.setLastCheck(new Date());
+				knb.updateUserInstance(u);
+			});
 		});
 		knb.getJda().getPresence().setActivity(oldAct);
 	}

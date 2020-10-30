@@ -121,8 +121,8 @@ public class CheckingJob implements Job {
 		try {
 			coms = knb.getNewMailsForInstance(ui);
 		} catch (final Exception e) {
-			LOG.error("Error while getting emails for instance " + ui.getId(), e);
-			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux mails: " + e);
+			LOG.error("Error while getting communications for instance " + ui.getId(), e);
+			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles communications: " + e);
 			return;
 		}
 
@@ -131,6 +131,34 @@ public class CheckingJob implements Job {
 		if (coms.size() == 0) {
 			return;
 		}
+
+		String estabName = "";
+		try {
+			final UserInfo info = knb.getUserInfoForInstace(ui);
+			estabName = info.getEtabs().get(0).getNom();
+		} catch (final NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
+			LOG.error("Failed to get user info for instance " + ui.getId(), e);
+		}
+
+		final Date oldest = Collections.min(coms, (o1, o2) -> o1.getLastMessage().compareTo(o2.getLastMessage()))
+				.getLastMessage();
+
+		final EmbedBuilder embBuild = new EmbedBuilder();
+
+		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
+				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
+		embBuild.setColor(COLOR_ARTICLE);
+		embBuild.setTimestamp(oldest.toInstant());
+		embBuild.setTitle("Nouvelles communications");
+		embBuild.setFooter(estabName);
+
+		for (final CommunicationPreview n : coms) {
+			final Field f = new Field(n.getCurrentAuthor().getLabel() + ": " + n.getSubject(), n.getPreview(), true);
+			embBuild.addField(f);
+		}
+
+		final MessageEmbed emb = embBuild.build();
+		chan.sendMessage(emb).queue();
 	}
 
 	private void processArticles(final Knb knb, final UserInstance ui) {

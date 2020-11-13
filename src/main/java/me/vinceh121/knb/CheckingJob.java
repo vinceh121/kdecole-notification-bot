@@ -11,7 +11,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.mongodb.client.model.Filters;
@@ -30,13 +30,13 @@ import net.dv8tion.jda.api.entities.TextChannel;
 public class CheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
 	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
-	private Histogram metricNewsCount, metricEmailsCount, metricGradesCount;
+	private Counter metricNewsCount, metricEmailsCount, metricGradesCount;
 	private Timer metricProcessTime;
 
 	private void setupMetrics(final MetricRegistry regis) {
-		this.metricNewsCount = regis.histogram(MetricRegistry.name("check", "news", "count"));
-		this.metricEmailsCount = regis.histogram(MetricRegistry.name("check", "emails", "count"));
-		this.metricGradesCount = regis.histogram(MetricRegistry.name("check", "grades", "count"));
+		this.metricNewsCount = regis.counter(MetricRegistry.name("check", "news", "count"));
+		this.metricEmailsCount = regis.counter(MetricRegistry.name("check", "emails", "count"));
+		this.metricGradesCount = regis.counter(MetricRegistry.name("check", "grades", "count"));
 		this.metricProcessTime = regis.timer(MetricRegistry.name("check", "process", "time"));
 	}
 
@@ -80,7 +80,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		metricGradesCount.update(grades.size());
+		metricGradesCount.inc(grades.size());
 
 		if (grades.size() == 0) {
 			return;
@@ -126,7 +126,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		metricEmailsCount.update(coms.size());
+		metricEmailsCount.inc(coms.size());
 
 		if (coms.size() == 0) {
 			return;
@@ -172,7 +172,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		metricNewsCount.update(news.size());
+		metricNewsCount.inc(news.size());
 
 		if (news.size() == 0) {
 			return;

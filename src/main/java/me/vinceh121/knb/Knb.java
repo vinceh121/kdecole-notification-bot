@@ -41,6 +41,7 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
@@ -212,6 +213,15 @@ public class Knb {
 				.build(graphite);
 
 		graphiteReporter.start(metc.getPeriod(), TimeUnit.MINUTES);
+
+		final Gauge<Integer> gaugeGuilds = () -> this.jda.getGuilds().size();
+		this.metricRegistry.register(MetricRegistry.name("discord", "guilds"), gaugeGuilds);
+
+		final Gauge<Long> gaugeGatewayPing = () -> this.jda.getGatewayPing();
+		this.metricRegistry.register(MetricRegistry.name("discord", "ping", "gateway"), gaugeGatewayPing);
+
+		final Gauge<Long> gaugeRestPing = () -> this.jda.getRestPing().complete();
+		this.metricRegistry.register(MetricRegistry.name("discord", "ping", "rest"), gaugeRestPing);
 	}
 
 	public void addUserInstance(final UserInstance ui) {

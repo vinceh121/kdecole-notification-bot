@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.MentionType;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -41,9 +42,13 @@ public class CommandListener extends ListenerAdapter {
 	}
 
 	@Override
+	public void onReady(final ReadyEvent event) {
+	}
+
+	@Override
 	public void onGuildJoin(final GuildJoinEvent event) {
 		final Guild g = event.getGuild();
-		LOG.info("Added to guild: " + g);
+		CommandListener.LOG.info("Added to guild: " + g);
 		try {
 			final TextChannel ch;
 			if (g.getDefaultChannel() != null) {
@@ -64,7 +69,7 @@ public class CommandListener extends ListenerAdapter {
 
 		final List<String> args = new Vector<>();
 		// https://stackoverflow.com/a/366532
-		final Matcher regexMatcher = SPLIT_PATTERN.matcher(msg.getContentRaw());
+		final Matcher regexMatcher = CommandListener.SPLIT_PATTERN.matcher(msg.getContentRaw());
 		while (regexMatcher.find()) {
 			if (regexMatcher.group(1) != null) {
 				args.add(regexMatcher.group(1));
@@ -117,7 +122,8 @@ public class CommandListener extends ListenerAdapter {
 				event.getChannel()
 						.sendMessage(":shield: Used admin privileges to bypass authenticated instance access.")
 						.queue();
-				LOG.info("Admin {} bypassed authenticated command {} : {}", event.getAuthor(), cmd.getName(), args);
+				CommandListener.LOG.info("Admin {} bypassed authenticated command {} : {}", event.getAuthor(),
+						cmd.getName(), args);
 			} else {
 				if (!ui.isAllowOthers() && !event.getAuthor().getId().equals(ui.getAdderId())) {
 					event.getChannel()
@@ -136,7 +142,7 @@ public class CommandListener extends ListenerAdapter {
 		}
 
 		cmd.execute(ctx).exceptionally(t -> {
-			LOG.error("Unhandeled error with command " + rawCmd, t);
+			CommandListener.LOG.error("Unhandeled error with command " + rawCmd, t);
 			event.getChannel().sendMessage("Erreur inattendue dans l'éxécution de la commande").queue();
 			return null;
 		});
@@ -144,7 +150,7 @@ public class CommandListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildLeave(final GuildLeaveEvent event) {
-		LOG.info("Bot removed from guild " + event.getGuild());
+		CommandListener.LOG.info("Bot removed from guild " + event.getGuild());
 		this.knb.removeGuild(event.getGuild().getId());
 	}
 

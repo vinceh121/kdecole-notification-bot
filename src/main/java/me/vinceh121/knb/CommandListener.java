@@ -80,6 +80,13 @@ public class CommandListener extends ListenerAdapter {
 			}
 		}
 
+		if (args.size() == 1) {
+			event.getChannel()
+					.sendMessage(
+							"Veullez visiter https://knb.vinceh121.me/posts/getting-started pour commencer a utiliser le bot.")
+					.queue();
+		}
+
 		if (args.size() < 2) {
 			return;
 		}

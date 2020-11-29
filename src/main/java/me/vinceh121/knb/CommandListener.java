@@ -56,7 +56,7 @@ public class CommandListener extends ListenerAdapter {
 			} else {
 				ch = g.getTextChannels().get(0);
 			}
-			ch.sendMessage("Merci d'utiliser Kdecole Notification Bot!\n" + "Pingez moi pour m'initialiser").queue();
+			ch.sendMessage("Merci d'utiliser Kdecole Notification Bot!\n" + "Pingez moi pour m'initialiser\n`@Kdecole Bot#6747 help`").queue();
 		} catch (final InsufficientPermissionException e) {} // Fail silently on no perm
 	}
 
@@ -83,7 +83,7 @@ public class CommandListener extends ListenerAdapter {
 		if (args.size() == 1) {
 			event.getChannel()
 					.sendMessage(
-							"Veullez visiter https://knb.vinceh121.me/posts/getting-started pour commencer a utiliser le bot.")
+							"Veulliez visiter https://knb.vinceh121.me/posts/getting-started pour commencer a utiliser le bot.")
 					.queue();
 		}
 

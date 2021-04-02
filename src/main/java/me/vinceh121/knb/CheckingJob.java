@@ -243,7 +243,7 @@ public class CheckingJob implements Job {
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
 		embBuild.setColor(COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
-		embBuild.setTitle("Nouveaux articles");
+		embBuild.setTitle("Nouveaux devoirs");
 		embBuild.setFooter(estabName);
 
 		for (final Homework n : hws) {

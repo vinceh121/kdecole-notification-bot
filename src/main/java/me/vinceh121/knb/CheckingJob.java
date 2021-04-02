@@ -247,7 +247,7 @@ public class CheckingJob implements Job {
 		embBuild.setFooter(estabName);
 
 		for (final Homework n : hws) {
-			final Field f = new Field(n.getType() + " : " + n.getTitle(), n.getTitle(), true);
+			final Field f = new Field(n.getType() + " : " + n.getSubject(), n.getTitle(), true);
 			embBuild.addField(f);
 		}
 

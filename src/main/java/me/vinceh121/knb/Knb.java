@@ -294,8 +294,8 @@ public class Knb {
 		final List<Homework> homeworks = new ArrayList<>();
 
 		for (final HWDay ar : days) {
-			if (last.before(ar.getDate())) {
-				for (final Homework hw : ar.getHomeworks()) {
+			for (final Homework hw : ar.getHomeworks()) {
+				if (last.before(hw.getGivenAt())) {
 					homeworks.add(hw);
 				}
 			}

@@ -45,12 +45,12 @@ public class CmdAuth extends AbstractCommand {
 
 		final String endpoint;
 		if (ctx.getArgs().size() >= 3) {
-			endpoint = endpoints.get(Integer.parseInt(ctx.getArgs().get(2)));
+			endpoint = ctx.getArgs().get(2);
 		} else if (endpoints.size() == 1) {
 			endpoint = endpoints.get(0);
 		} else if (endpoints.size() > 1) {
 			final StringBuilder sb = new StringBuilder("Votre MDP correspond a plusieurs instances Kdecole. ; \n"
-					+ "Reenvoyez la commande `auth` avec l'argument le numéro de l'URL qui correspond a "
+					+ "Reenvoyez la commande `auth` avec l'URL qui correspond a "
 					+ "celui de votre instance.\n\n");
 			for (int i = 0; i < endpoints.size(); i++) {
 				sb.append(i + "\t<" + endpoints.get(i) + ">\n");
@@ -61,7 +61,8 @@ public class CmdAuth extends AbstractCommand {
 			ctx.getEvent()
 					.getChannel()
 					.sendMessage("Votre mot-de-passe n'a pas permi d'identifier une instance Kdecole.\n"
-							+ "Essayez la commande `endpoints` pour voir quelles instances sont acceptées")
+							+ "Essayez la commande `endpoints` pour voir quelles instances sont acceptées, ou alors, "
+							+ "spécifiez l'URL d'accés mobile de votre ENT")
 					.queue();
 			return;
 		}

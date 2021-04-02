@@ -19,6 +19,7 @@ import com.mongodb.client.model.Updates;
 
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.grades.Grade;
+import me.vinceh121.jkdecole.entities.homework.Homework;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -58,6 +59,9 @@ public class CheckingJob implements Job {
 				}
 				if (u.getRelays().contains(RelayType.NOTES)) {
 					this.processGrades(knb, u);
+				}
+				if (u.getRelays().contains(RelayType.DEVOIRS)) {
+					this.processHomework(knb, u);
 				}
 				u.setLastCheck(new Date());
 				knb.updateUserInstance(u);
@@ -199,6 +203,51 @@ public class CheckingJob implements Job {
 
 		for (final Article n : news) {
 			final Field f = new Field(n.getAuthor(), n.getTitle(), true);
+			embBuild.addField(f);
+		}
+
+		final MessageEmbed emb = embBuild.build();
+		chan.sendMessage(emb).queue();
+	}
+
+	private void processHomework(final Knb knb, final UserInstance ui) {
+		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
+		final List<Homework> hws;
+		try {
+			hws = knb.getAgendaForInstance(ui);
+		} catch (final Exception e) {
+			LOG.error("Error while getting homework for instance " + ui.getId(), e);
+			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux devoirs: " + e);
+			return;
+		}
+
+		metricNewsCount.inc(hws.size());
+
+		if (hws.size() == 0) {
+			return;
+		}
+
+		String estabName = "";
+		try {
+			final UserInfo info = knb.getUserInfoForInstace(ui);
+			estabName = info.getEtabs().get(0).getNom();
+		} catch (final NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
+			LOG.error("Failed to get user info for instance " + ui.getId(), e);
+		}
+
+		final Date oldest = Collections.min(hws, (o1, o2) -> o1.getGivenAt().compareTo(o2.getGivenAt())).getGivenAt();
+
+		final EmbedBuilder embBuild = new EmbedBuilder();
+
+		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
+				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
+		embBuild.setColor(COLOR_ARTICLE);
+		embBuild.setTimestamp(oldest.toInstant());
+		embBuild.setTitle("Nouveaux articles");
+		embBuild.setFooter(estabName);
+
+		for (final Homework n : hws) {
+			final Field f = new Field(n.getType() + " : " + n.getTitle(), n.getTitle(), true);
 			embBuild.addField(f);
 		}
 

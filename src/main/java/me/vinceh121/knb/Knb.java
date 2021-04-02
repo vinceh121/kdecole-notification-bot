@@ -64,6 +64,9 @@ import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.grades.Grade;
 import me.vinceh121.jkdecole.entities.grades.GradeMessage;
+import me.vinceh121.jkdecole.entities.homework.Agenda;
+import me.vinceh121.jkdecole.entities.homework.HWDay;
+import me.vinceh121.jkdecole.entities.homework.Homework;
 import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import me.vinceh121.knb.Config.MetricConfig;
@@ -276,6 +279,28 @@ public class Knb {
 						"Il y a eu une erreur à la récupération des infos utilisateur, cependant le bot peut probablement fonctionner.");
 			}
 		});
+	}
+
+	public List<Homework> getAgendaForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
+		final JKdecole kdecole = this.getKdecole();
+		kdecole.setToken(ui.getKdecoleToken());
+		kdecole.setEndpoint(ui.getEndpoint());
+		final Agenda agenda = kdecole.getAgenda();
+		if (!agenda.isHwOpen()) {
+			throw new RuntimeException("Votre ENT n'a pas d'agenda");
+		}
+		final List<HWDay> days = agenda.getDays();
+		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
+		final List<Homework> homeworks = new ArrayList<>();
+
+		for (final HWDay ar : days) {
+			if (last.before(ar.getDate())) {
+				for (final Homework hw : ar.getHomeworks()) {
+					homeworks.add(hw);
+				}
+			}
+		}
+		return homeworks;
 	}
 
 	public List<Article> getNewsForInstance(final UserInstance ui) throws ClientProtocolException, IOException {

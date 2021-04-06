@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -157,7 +158,8 @@ public class CheckingJob implements Job {
 		embBuild.setFooter(estabName);
 
 		for (final CommunicationPreview n : coms) {
-			final Field f = new Field(n.getCurrentAuthor().getLabel() + ": " + n.getSubject(), n.getPreview(), true);
+			final Field f = new Field(n.getCurrentAuthor().getLabel() + ": " + n.getSubject(),
+					StringEscapeUtils.unescapeHtml4(n.getPreview()), true);
 			embBuild.addField(f);
 		}
 

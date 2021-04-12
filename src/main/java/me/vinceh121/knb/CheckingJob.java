@@ -5,11 +5,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.FormattedMessage;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
@@ -31,7 +32,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class CheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
-	private static final Logger LOG = LoggerFactory.getLogger(CheckingJob.class);
+	private static final Logger LOG = LogManager.getLogger(CheckingJob.class);
 	private Counter metricNewsCount, metricEmailsCount, metricGradesCount;
 	private Timer metricProcessTime;
 
@@ -51,7 +52,7 @@ public class CheckingJob implements Job {
 		this.setupMetrics(knb.getMetricRegistry());
 
 		knb.getAllValidInstances().forEach(u -> {
-			metricProcessTime.time(() -> {
+			this.metricProcessTime.time(() -> {
 				final JKdecole kdecole = knb.getKdecole();
 				kdecole.setToken(u.getKdecoleToken());
 				kdecole.setEndpoint(u.getEndpoint());
@@ -59,7 +60,8 @@ public class CheckingJob implements Job {
 				try {
 					info = kdecole.getUserInfo();
 				} catch (final Exception e) {
-					LOG.error("Error while fetching user info for instance {}", u.getId());
+					CheckingJob.LOG.error(
+							new FormattedMessage("Error while fetching user info for instance {}", u.getId()), e);
 					info = new UserInfo();
 					info.setNom("");
 				}
@@ -91,12 +93,12 @@ public class CheckingJob implements Job {
 			this.sendWarning(knb, chan, ui, "Votre ENT n'a pas de module de notes activé");
 			return;
 		} catch (final Exception e) {
-			LOG.error("Error while getting grades for instance " + ui.getId(), e);
+			CheckingJob.LOG.error(new FormattedMessage("Error while getting grades for instance {}", ui.getId()), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles notes: " + e);
 			return;
 		}
 
-		metricGradesCount.inc(grades.size());
+		this.metricGradesCount.inc(grades.size());
 
 		if (grades.size() == 0) {
 			return;
@@ -110,7 +112,7 @@ public class CheckingJob implements Job {
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(COLOR_ARTICLE);
+		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouvelles notes");
 		embBuild.setFooter(estabName);
@@ -131,12 +133,13 @@ public class CheckingJob implements Job {
 		try {
 			coms = knb.fetchNewMailsForInstance(kde, ui);
 		} catch (final Exception e) {
-			LOG.error("Error while getting communications for instance " + ui.getId(), e);
+			CheckingJob.LOG
+					.error(new FormattedMessage("Error while getting communications for instance {}", ui.getId()), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles communications: " + e);
 			return;
 		}
 
-		metricEmailsCount.inc(coms.size());
+		this.metricEmailsCount.inc(coms.size());
 
 		if (coms.size() == 0) {
 			return;
@@ -151,7 +154,7 @@ public class CheckingJob implements Job {
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(COLOR_ARTICLE);
+		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouvelles communications");
 		embBuild.setFooter(estabName);
@@ -172,12 +175,12 @@ public class CheckingJob implements Job {
 		try {
 			news = knb.fetchNewsForInstance(kde, ui);
 		} catch (final Exception e) {
-			LOG.error("Error while getting news for instance " + ui.getId(), e);
+			CheckingJob.LOG.error(new FormattedMessage("Error while getting news for instance {}", ui.getId()), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux articles: " + e);
 			return;
 		}
 
-		metricNewsCount.inc(news.size());
+		this.metricNewsCount.inc(news.size());
 
 		if (news.size() == 0) {
 			return;
@@ -191,7 +194,7 @@ public class CheckingJob implements Job {
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(COLOR_ARTICLE);
+		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouveaux articles");
 		embBuild.setFooter(estabName);
@@ -211,12 +214,12 @@ public class CheckingJob implements Job {
 		try {
 			hws = knb.fetchAgendaForInstance(kde, ui);
 		} catch (final Exception e) {
-			LOG.error("Error while getting homework for instance " + ui.getId(), e);
+			CheckingJob.LOG.error(new FormattedMessage("Error while getting homework for instance {}", ui.getId()), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux devoirs: " + e);
 			return;
 		}
 
-		metricNewsCount.inc(hws.size());
+		this.metricNewsCount.inc(hws.size());
 
 		if (hws.size() == 0) {
 			return;
@@ -230,7 +233,7 @@ public class CheckingJob implements Job {
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(COLOR_ARTICLE);
+		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouveaux devoirs");
 		embBuild.setFooter(estabName);

@@ -22,7 +22,7 @@ public class CmdEndpoints extends AbstractCommand {
 		}
 
 		sb.append("\n```");
-		
+
 		ctx.getEvent().getChannel().sendMessage(sb.toString()).queue();
 	}
 

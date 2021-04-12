@@ -7,8 +7,9 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.FormattedMessage;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
@@ -19,7 +20,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.MentionType;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -27,7 +27,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
-	private static final Logger LOG = LoggerFactory.getLogger(CommandListener.class);
+	private static final Logger LOG = LogManager.getLogger(CommandListener.class);
 	private static final Pattern SPLIT_PATTERN = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 	private final Knb knb;
 	private final Map<String, AbstractCommand> map;
@@ -42,13 +42,9 @@ public class CommandListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onReady(final ReadyEvent event) {
-	}
-
-	@Override
 	public void onGuildJoin(final GuildJoinEvent event) {
 		final Guild g = event.getGuild();
-		CommandListener.LOG.info("Added to guild: " + g);
+		CommandListener.LOG.info("Added to guild {}", g);
 		try {
 			final TextChannel ch;
 			if (g.getDefaultChannel() != null) {
@@ -56,7 +52,8 @@ public class CommandListener extends ListenerAdapter {
 			} else {
 				ch = g.getTextChannels().get(0);
 			}
-			ch.sendMessage("Merci d'utiliser Kdecole Notification Bot!\n" + "Pingez moi pour m'initialiser\n`@Kdecole Bot#6747 help`").queue();
+			ch.sendMessage("Merci d'utiliser Kdecole Notification Bot!\n"
+					+ "Pingez moi pour m'initialiser\n`@Kdecole Bot#6747 help`").queue();
 		} catch (final InsufficientPermissionException e) {} // Fail silently on no perm
 	}
 
@@ -149,7 +146,7 @@ public class CommandListener extends ListenerAdapter {
 		}
 
 		cmd.execute(ctx).exceptionally(t -> {
-			CommandListener.LOG.error("Unhandeled error with command " + rawCmd, t);
+			CommandListener.LOG.error(new FormattedMessage("Unhandeled error with command ", rawCmd), t);
 			event.getChannel().sendMessage("Erreur inattendue dans l'éxécution de la commande").queue();
 			return null;
 		});
@@ -157,7 +154,7 @@ public class CommandListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildLeave(final GuildLeaveEvent event) {
-		CommandListener.LOG.info("Bot removed from guild " + event.getGuild());
+		CommandListener.LOG.info("Bot removed from guild {}", event.getGuild());
 		this.knb.removeGuild(event.getGuild().getId());
 	}
 

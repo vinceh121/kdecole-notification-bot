@@ -52,11 +52,11 @@ public class Config {
 
 	@JsonProperty(required = false)
 	public MetricConfig getMetrics() {
-		return metrics;
+		return this.metrics;
 	}
 
 	@JsonProperty(required = false)
-	public void setMetrics(MetricConfig metrics) {
+	public void setMetrics(final MetricConfig metrics) {
 		this.metrics = metrics;
 	}
 
@@ -66,26 +66,26 @@ public class Config {
 		private long period;
 
 		public String getHost() {
-			return host;
+			return this.host;
 		}
 
-		public void setHost(String host) {
+		public void setHost(final String host) {
 			this.host = host;
 		}
 
 		public int getPort() {
-			return port;
+			return this.port;
 		}
 
-		public void setPort(int port) {
+		public void setPort(final int port) {
 			this.port = port;
 		}
 
 		public long getPeriod() {
-			return period;
+			return this.period;
 		}
 
-		public void setPeriod(long period) {
+		public void setPeriod(final long period) {
 			this.period = period;
 		}
 

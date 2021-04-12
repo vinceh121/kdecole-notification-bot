@@ -24,6 +24,9 @@ import javax.security.auth.login.LoginException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.FormattedMessage;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.Conventions;
@@ -38,8 +41,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricFilter;
@@ -75,7 +76,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 public class Knb {
-	private static final Logger LOG = LoggerFactory.getLogger(Knb.class);
+	private static final Logger LOG = LogManager.getLogger(Knb.class);
 	private static final Collection<GatewayIntent> INTENTS = Arrays.asList(GUILD_MESSAGES, DIRECT_MESSAGES);
 	private final HttpClient http;
 	private final ObjectMapper mapper;
@@ -120,7 +121,7 @@ public class Knb {
 			throw new RuntimeException(e);
 		}
 
-		LOG.info("Connecting to DB");
+		Knb.LOG.info("Connecting to DB");
 
 		final CodecRegistry codecRegistry
 				= CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -166,7 +167,7 @@ public class Knb {
 			this.registerCommands();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
-			LOG.error("Failed to load commands", e);
+			Knb.LOG.error("Failed to load commands", e);
 			throw new RuntimeException(e);
 		}
 		this.regisListener = new CommandListener(this, this.cmdMap);
@@ -190,18 +191,19 @@ public class Knb {
 		try {
 			this.scheduler.scheduleJob(this.job, trig);
 		} catch (final SchedulerException e) {
-			LOG.error("Could not schedule checking job", e);
+			Knb.LOG.error("Could not schedule checking job", e);
 			System.exit(-5);
 		}
 	}
 
 	private void initMetrics() {
-		if (this.config.getMetrics() == null)
+		if (this.config.getMetrics() == null) {
 			return;
+		}
 
 		final MetricConfig metc = this.config.getMetrics();
 
-		LOG.info("Starting metrics");
+		Knb.LOG.info("Starting metrics");
 		this.metricRegistry.registerAll("knb-gc", new GarbageCollectorMetricSet());
 		this.metricRegistry.registerAll("knb-mem", new MemoryUsageGaugeSet());
 
@@ -254,12 +256,12 @@ public class Knb {
 			try {
 				success = kdecole.login(username, password, false);
 			} catch (final IOException e) {
-				Knb.LOG.error("Error while logging into kdecole for instance " + ui.getId(), e);
+				Knb.LOG.error(new FormattedMessage("Error while logging into kdecole for instance {}", ui.getId()), e);
 				throw new RuntimeException("Un erreur est survenue à la connection à l'ENT");
 			}
 
 			if (!success) {
-				LOG.error("Login error for instance " + ui);
+				Knb.LOG.error("Login error for instance " + ui);
 				throw new RuntimeException("La connection à l'ENT a échouée");
 			}
 
@@ -364,7 +366,7 @@ public class Knb {
 			this.cmdMap.put(c.getName(), c);
 		}
 
-		LOG.info("Loaded {} commands", this.cmdMap.size());
+		Knb.LOG.info("Loaded {} commands", this.cmdMap.size());
 	}
 
 	public void shutdown() throws Exception {
@@ -399,10 +401,10 @@ public class Knb {
 	}
 
 	public CommandListener getRegisListener() {
-		return regisListener;
+		return this.regisListener;
 	}
 
 	public MetricRegistry getMetricRegistry() {
-		return metricRegistry;
+		return this.metricRegistry;
 	}
 }

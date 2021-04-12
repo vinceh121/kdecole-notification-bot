@@ -78,10 +78,10 @@ public class UserInstance {
 	}
 
 	public boolean isAlwaysShowWarnings() {
-		return alwaysShowWarnings;
+		return this.alwaysShowWarnings;
 	}
 
-	public void setAlwaysShowWarnings(boolean alwaysShowWarnings) {
+	public void setAlwaysShowWarnings(final boolean alwaysShowWarnings) {
 		this.alwaysShowWarnings = alwaysShowWarnings;
 	}
 

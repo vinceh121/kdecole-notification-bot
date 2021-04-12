@@ -13,9 +13,9 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 public class CmdApropos extends AbstractCommand {
 	private static final Random RND = new Random();
 	private static final boolean INLINE = true;
-	private static final List<Field> EASTER_FIELD
-			= Arrays.asList(new Field("Hotel", "Trivago", INLINE), new Field("Astolfo", "Cute", INLINE),
-					new Field("weeb", "services", INLINE), new Field("Stallman", "Was right", INLINE));
+	private static final List<Field> EASTER_FIELD = Arrays.asList(new Field("Hotel", "Trivago", CmdApropos.INLINE),
+			new Field("Astolfo", "Cute", CmdApropos.INLINE), new Field("weeb", "services", CmdApropos.INLINE),
+			new Field("Stallman", "Was right", CmdApropos.INLINE));
 
 	public CmdApropos(final Knb knb) {
 		super(knb);
@@ -31,10 +31,10 @@ public class CmdApropos extends AbstractCommand {
 				"Kdecole Notification Bot est un bot Discord ayant pour but de relayer les notifications d'un"
 						+ " ENT Kdecole/Skolengo dans un salon");
 
-		build.addField("Version", "0.0.1-SNAPSHOT", INLINE);
-		build.addField("Licence", "GNU GPL V3", INLINE);
+		build.addField("Version", "0.0.1-SNAPSHOT", CmdApropos.INLINE);
+		build.addField("Licence", "GNU GPL V3", CmdApropos.INLINE);
 
-		build.addField(EASTER_FIELD.get(RND.nextInt(EASTER_FIELD.size())));
+		build.addField(CmdApropos.EASTER_FIELD.get(CmdApropos.RND.nextInt(CmdApropos.EASTER_FIELD.size())));
 
 		ctx.getEvent().getChannel().sendMessage(build.build()).queue();
 	}

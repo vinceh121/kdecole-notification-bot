@@ -301,8 +301,6 @@ public class Knb {
 
 	public List<Article> fetchNewsForInstance(final JKdecole kdecole, final UserInstance ui)
 			throws ClientProtocolException, IOException {
-		kdecole.setToken(ui.getKdecoleToken());
-		kdecole.setEndpoint(ui.getEndpoint());
 		final List<Article> news = kdecole.getNews();
 		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
 		final List<Article> newNews = new ArrayList<>();
@@ -317,9 +315,6 @@ public class Knb {
 
 	public List<CommunicationPreview> fetchNewMailsForInstance(final JKdecole kdecole, final UserInstance ui)
 			throws ClientProtocolException, IOException {
-		kdecole.setToken(ui.getKdecoleToken());
-		kdecole.setEndpoint(ui.getEndpoint());
-
 		final List<CommunicationPreview> coms = kdecole.getInbox(-1).getComs();
 		final List<CommunicationPreview> updatedComs = new ArrayList<>();
 
@@ -334,9 +329,6 @@ public class Knb {
 
 	public List<Grade> fetchNewGradesForInstance(final JKdecole kdecole, final UserInstance ui)
 			throws ClientProtocolException, IOException {
-		kdecole.setToken(ui.getKdecoleToken());
-		kdecole.setEndpoint(ui.getEndpoint());
-
 		final GradeMessage msg = kdecole.getStudentGrades();
 
 		if (!msg.isGradeModulesEnabled()) {

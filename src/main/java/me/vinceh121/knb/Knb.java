@@ -48,8 +48,6 @@ import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -281,10 +279,8 @@ public class Knb {
 		});
 	}
 
-	public List<Homework> getAgendaForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
-		final JKdecole kdecole = this.getKdecole();
-		kdecole.setToken(ui.getKdecoleToken());
-		kdecole.setEndpoint(ui.getEndpoint());
+	public List<Homework> fetchAgendaForInstance(final JKdecole kdecole, final UserInstance ui)
+			throws ClientProtocolException, IOException {
 		final Agenda agenda = kdecole.getAgenda();
 		if (!agenda.isHwOpen()) {
 			throw new RuntimeException("Votre ENT n'a pas d'agenda");
@@ -303,8 +299,8 @@ public class Knb {
 		return homeworks;
 	}
 
-	public List<Article> getNewsForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
-		final JKdecole kdecole = this.getKdecole();
+	public List<Article> fetchNewsForInstance(final JKdecole kdecole, final UserInstance ui)
+			throws ClientProtocolException, IOException {
 		kdecole.setToken(ui.getKdecoleToken());
 		kdecole.setEndpoint(ui.getEndpoint());
 		final List<Article> news = kdecole.getNews();
@@ -319,9 +315,8 @@ public class Knb {
 		return newNews;
 	}
 
-	public List<CommunicationPreview> getNewMailsForInstance(final UserInstance ui)
+	public List<CommunicationPreview> fetchNewMailsForInstance(final JKdecole kdecole, final UserInstance ui)
 			throws ClientProtocolException, IOException {
-		final JKdecole kdecole = this.getKdecole();
 		kdecole.setToken(ui.getKdecoleToken());
 		kdecole.setEndpoint(ui.getEndpoint());
 
@@ -337,8 +332,8 @@ public class Knb {
 		return updatedComs;
 	}
 
-	public List<Grade> getNewGradesForInstance(final UserInstance ui) throws ClientProtocolException, IOException {
-		final JKdecole kdecole = this.getKdecole();
+	public List<Grade> fetchNewGradesForInstance(final JKdecole kdecole, final UserInstance ui)
+			throws ClientProtocolException, IOException {
 		kdecole.setToken(ui.getKdecoleToken());
 		kdecole.setEndpoint(ui.getEndpoint());
 
@@ -358,14 +353,6 @@ public class Knb {
 		}
 
 		return updatedGrades;
-	}
-
-	public UserInfo getUserInfoForInstace(final UserInstance ui)
-			throws JsonParseException, JsonMappingException, ClientProtocolException, IOException {
-		final JKdecole kdecole = this.getKdecole();
-		kdecole.setToken(ui.getKdecoleToken());
-		kdecole.setEndpoint(ui.getEndpoint());
-		return kdecole.getUserInfo();
 	}
 
 	public void manualTriggerAll() throws SchedulerException {

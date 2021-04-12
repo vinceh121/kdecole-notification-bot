@@ -1,6 +1,5 @@
 package me.vinceh121.knb;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -18,6 +17,7 @@ import com.codahale.metrics.Timer;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
+import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
 import me.vinceh121.jkdecole.entities.grades.Grade;
 import me.vinceh121.jkdecole.entities.homework.Homework;
@@ -52,17 +52,28 @@ public class CheckingJob implements Job {
 
 		knb.getAllValidInstances().forEach(u -> {
 			metricProcessTime.time(() -> {
+				final JKdecole kdecole = knb.getKdecole();
+				kdecole.setToken(u.getKdecoleToken());
+				kdecole.setEndpoint(u.getEndpoint());
+				UserInfo info;
+				try {
+					info = kdecole.getUserInfo();
+				} catch (final Exception e) {
+					LOG.error("Error while fetching user info for instance {}", u.getId());
+					info = new UserInfo();
+					info.setNom("");
+				}
 				if (u.getRelays().contains(RelayType.ARTICLES)) {
-					this.processArticles(knb, u);
+					this.processArticles(knb, kdecole, info, u);
 				}
 				if (u.getRelays().contains(RelayType.EMAILS)) {
-					this.processEmails(knb, u);
+					this.processEmails(knb, kdecole, info, u);
 				}
 				if (u.getRelays().contains(RelayType.NOTES)) {
-					this.processGrades(knb, u);
+					this.processGrades(knb, kdecole, info, u);
 				}
 				if (u.getRelays().contains(RelayType.DEVOIRS)) {
-					this.processHomework(knb, u);
+					this.processHomework(knb, kdecole, info, u);
 				}
 				u.setLastCheck(new Date());
 				knb.updateUserInstance(u);
@@ -71,11 +82,11 @@ public class CheckingJob implements Job {
 		knb.getJda().getPresence().setActivity(oldAct);
 	}
 
-	private void processGrades(final Knb knb, final UserInstance ui) {
+	private void processGrades(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<Grade> grades;
 		try {
-			grades = knb.getNewGradesForInstance(ui);
+			grades = knb.fetchNewGradesForInstance(kde, ui);
 		} catch (final UnsupportedOperationException e) {
 			this.sendWarning(knb, chan, ui, "Votre ENT n'a pas de module de notes activé");
 			return;
@@ -91,13 +102,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		String estabName = "";
-		try {
-			final UserInfo info = knb.getUserInfoForInstace(ui);
-			estabName = info.getEtabs().get(0).getNom();
-		} catch (final NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
-			LOG.error("Failed to get user info for instance " + ui.getId(), e);
-		}
+		final String estabName = info.getEtabs().get(0).getNom();
 
 		final Date oldest = Collections.min(grades, (o1, o2) -> o1.getDate().compareTo(o2.getDate())).getDate();
 
@@ -120,11 +125,11 @@ public class CheckingJob implements Job {
 		chan.sendMessage(emb).queue();
 	}
 
-	private void processEmails(final Knb knb, final UserInstance ui) {
+	private void processEmails(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<CommunicationPreview> coms;
 		try {
-			coms = knb.getNewMailsForInstance(ui);
+			coms = knb.fetchNewMailsForInstance(kde, ui);
 		} catch (final Exception e) {
 			LOG.error("Error while getting communications for instance " + ui.getId(), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles communications: " + e);
@@ -137,13 +142,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		String estabName = "";
-		try {
-			final UserInfo info = knb.getUserInfoForInstace(ui);
-			estabName = info.getEtabs().get(0).getNom();
-		} catch (final NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
-			LOG.error("Failed to get user info for instance " + ui.getId(), e);
-		}
+		final String estabName = info.getEtabs().get(0).getNom();
 
 		final Date oldest = Collections.min(coms, (o1, o2) -> o1.getLastMessage().compareTo(o2.getLastMessage()))
 				.getLastMessage();
@@ -167,11 +166,11 @@ public class CheckingJob implements Job {
 		chan.sendMessage(emb).queue();
 	}
 
-	private void processArticles(final Knb knb, final UserInstance ui) {
+	private void processArticles(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<Article> news;
 		try {
-			news = knb.getNewsForInstance(ui);
+			news = knb.fetchNewsForInstance(kde, ui);
 		} catch (final Exception e) {
 			LOG.error("Error while getting news for instance " + ui.getId(), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux articles: " + e);
@@ -184,13 +183,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		String estabName = "";
-		try {
-			final UserInfo info = knb.getUserInfoForInstace(ui);
-			estabName = info.getEtabs().get(0).getNom();
-		} catch (final NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
-			LOG.error("Failed to get user info for instance " + ui.getId(), e);
-		}
+		final String estabName = info.getEtabs().get(0).getNom();
 
 		final Date oldest = Collections.min(news, (o1, o2) -> o1.getDate().compareTo(o2.getDate())).getDate();
 
@@ -212,11 +205,11 @@ public class CheckingJob implements Job {
 		chan.sendMessage(emb).queue();
 	}
 
-	private void processHomework(final Knb knb, final UserInstance ui) {
+	private void processHomework(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<Homework> hws;
 		try {
-			hws = knb.getAgendaForInstance(ui);
+			hws = knb.fetchAgendaForInstance(kde, ui);
 		} catch (final Exception e) {
 			LOG.error("Error while getting homework for instance " + ui.getId(), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux devoirs: " + e);
@@ -229,13 +222,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		String estabName = "";
-		try {
-			final UserInfo info = knb.getUserInfoForInstace(ui);
-			estabName = info.getEtabs().get(0).getNom();
-		} catch (final NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
-			LOG.error("Failed to get user info for instance " + ui.getId(), e);
-		}
+		final String estabName = info.getEtabs().get(0).getNom();
 
 		final Date oldest = Collections.min(hws, (o1, o2) -> o1.getGivenAt().compareTo(o2.getGivenAt())).getGivenAt();
 

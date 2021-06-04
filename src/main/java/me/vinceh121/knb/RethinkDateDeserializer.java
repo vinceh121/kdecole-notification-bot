@@ -18,7 +18,7 @@ public class RethinkDateDeserializer extends StdDeserializer<Date> {
 	@Override
 	public Date deserialize(final JsonParser p, final DeserializationContext ctxt)
 			throws IOException, JsonProcessingException {
-		return new Date(p.nextLongValue(0L));
+		return new Date(p.getLongValue());
 		// final ObjectNode tree = p.readValueAsTree();
 		// final ZoneOffset timezone =
 		// ZoneOffset.of(tree.get("offset").get("id").asText());

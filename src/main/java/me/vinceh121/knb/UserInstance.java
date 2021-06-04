@@ -105,17 +105,27 @@ public class UserInstance {
 	@Override
 	public String toString() {
 		return "UserInstance [id="
-				+ this.id
+				+ id
 				+ ", kdecoleToken="
-				+ this.kdecoleToken
+				+ kdecoleToken
 				+ ", adderId="
-				+ this.adderId
+				+ adderId
 				+ ", channelId="
-				+ this.channelId
+				+ channelId
+				+ ", guildId="
+				+ guildId
 				+ ", endpoint="
-				+ this.endpoint
+				+ endpoint
 				+ ", lastCheck="
-				+ this.lastCheck
+				+ lastCheck
+				+ ", showWarnings="
+				+ showWarnings
+				+ ", allowOthers="
+				+ allowOthers
+				+ ", alwaysShowWarnings="
+				+ alwaysShowWarnings
+				+ ", relays="
+				+ relays
 				+ "]";
 	}
 }

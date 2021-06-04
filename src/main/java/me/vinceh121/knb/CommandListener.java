@@ -5,6 +5,7 @@ import static com.rethinkdb.RethinkDB.r;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -117,15 +118,19 @@ public class CommandListener extends ListenerAdapter {
 		ctx.setAdminCalled(this.knb.isUserAdmin(event.getAuthor().getIdLong()));
 
 		if (cmd.isAuthenticatedCommand()) {
-			final UserInstance ui = this.knb.getTableInstances()
-					.filter(r.hashMap("channelId", event.getChannel().getId()))
-					.run(this.knb.getDbCon(), UserInstance.class)
-					.first();
-			ctx.setUserInstance(ui);
-			if (ui == null) {
+			final UserInstance ui;
+			try {
+				ui = this.knb.getTableInstances()
+						.filter(r.hashMap("channelId", event.getChannel().getId()))
+						.run(this.knb.getDbCon(), UserInstance.class)
+						.first();
+			} catch (final NoSuchElementException e) {
 				event.getChannel().sendMessage("Il n'y a pas d'intégration dans ce canal").queue();
 				return;
 			}
+
+			ctx.setUserInstance(ui);
+
 			if (!event.getAuthor().getId().equals(ui.getAdderId()) && ctx.isAdminCalled()) {
 				event.getChannel()
 						.sendMessage(":shield: Used admin privileges to bypass authenticated instance access.")

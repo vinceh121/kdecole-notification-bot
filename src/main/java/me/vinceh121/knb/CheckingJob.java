@@ -78,7 +78,10 @@ public class CheckingJob implements Job {
 					this.processHomework(knb, kdecole, info, u);
 				}
 				u.setLastCheck(new Date());
-				knb.getTableInstances().update(r.hashMap("lastCheck", new Date().getTime())).run(knb.getDbCon());
+				knb.getTableInstances()
+						.get(u.getId())
+						.update(r.hashMap("lastCheck", new Date().getTime()))
+						.run(knb.getDbCon());
 			});
 		});
 		knb.getJda().getPresence().setActivity(oldAct);

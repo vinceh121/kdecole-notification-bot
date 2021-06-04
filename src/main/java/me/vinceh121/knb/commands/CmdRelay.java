@@ -1,7 +1,6 @@
 package me.vinceh121.knb.commands;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
+import static com.rethinkdb.RethinkDB.r;
 
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
@@ -40,12 +39,16 @@ public class CmdRelay extends AbstractCommand {
 		final RelayType type = RelayType.valueOf(ctx.getArgs().get(0).toUpperCase());
 
 		if (ctx.getUserInstance().getRelays().contains(type)) {
-			this.knb.getColInstances()
-					.updateOne(Filters.eq(ctx.getUserInstance().getId()), Updates.pull("relays", type.name()));
+			this.knb.getTableInstances()
+					.get(ctx.getUserInstance().getId())
+					.update(doc -> r.hashMap("relays", doc.g("relays").difference(r.array(type.name()))))
+					.run(this.knb.getDbCon());
 			ctx.getUserInstance().getRelays().remove(type);
 		} else {
-			this.knb.getColInstances()
-					.updateOne(Filters.eq(ctx.getUserInstance().getId()), Updates.push("relays", type.name()));
+			this.knb.getTableInstances()
+					.get(ctx.getUserInstance().getId())
+					.update(doc -> r.hashMap("relays", doc.g("relays").append(type.name())))
+					.run(this.knb.getDbCon());
 			ctx.getUserInstance().getRelays().add(type);
 		}
 

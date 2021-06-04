@@ -1,9 +1,10 @@
 package me.vinceh121.knb.commands;
 
+import static com.rethinkdb.RethinkDB.r;
+
 import java.util.Date;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.client.model.Filters;
 
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
@@ -44,12 +45,14 @@ public class CmdDataRequest extends AbstractCommand {
 				headSb.append("\t:shield: Export déclanché par un administrateur\n");
 				headSb.append("\tDate: " + new Date().toString() + "\n\n");
 				privChan.sendMessage(headSb.toString()).queue();
-
-				this.knb.getColInstances().find(Filters.eq("adderId", user.getId())).forEach(ui -> {
-					final StringBuilder sb = new StringBuilder();
-					this.makeInstance(sb, ui);
-					privChan.sendMessage(sb.toString()).queue();
-				});
+				this.knb.getTableInstances()
+						.filter(r.hashMap("adderId", user.getId()))
+						.run(this.knb.getDbCon(), UserInstance.class)
+						.forEach(ui -> {
+							final StringBuilder sb = new StringBuilder();
+							this.makeInstance(sb, ui);
+							privChan.sendMessage(sb.toString()).queue();
+						});
 			});
 		});
 	}
@@ -57,7 +60,7 @@ public class CmdDataRequest extends AbstractCommand {
 	private void makeInstance(final StringBuilder sb, final UserInstance ui) {
 		final TextChannel chan = this.knb.getJda().getTextChannelById(ui.getChannelId());
 		final ObjectNode json = this.knb.getMapper().valueToTree(ui);
-		json.put("id", ui.getId().toHexString());
+		json.put("id", ui.getId());
 		sb.append("Channel: " + chan + "\n");
 		sb.append("```json\n");
 		sb.append(json.toPrettyString());

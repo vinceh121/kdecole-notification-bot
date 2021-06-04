@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Config {
-	private String token, mongo, feedbackChannelId;
+	private String token, dbUrl, feedbackChannelId;
 	private int delay;
 	private Collection<Long> admins;
 	private MetricConfig metrics;
@@ -26,12 +26,12 @@ public class Config {
 		this.delay = delay;
 	}
 
-	public String getMongo() {
-		return this.mongo;
+	public String getDbUrl() {
+		return this.dbUrl;
 	}
 
-	public void setMongo(final String mongo) {
-		this.mongo = mongo;
+	public void setDbUrl(final String dbUrl) {
+		this.dbUrl = dbUrl;
 	}
 
 	public Collection<Long> getAdmins() {

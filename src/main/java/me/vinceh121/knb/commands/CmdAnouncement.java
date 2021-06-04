@@ -3,11 +3,10 @@ package me.vinceh121.knb.commands;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mongodb.client.model.Filters;
-
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
+import me.vinceh121.knb.UserInstance;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 
@@ -23,7 +22,7 @@ public class CmdAnouncement extends AbstractCommand {
 		final String text = ":loudspeaker: Annonce :loudspeaker:\n" + String.join(" ", ctx.getArgs());
 		CmdAnouncement.LOG.info("Making announcement {}", text);
 
-		this.knb.getColInstances().find(Filters.exists("adderId")).forEach(ui -> { // YES everything is sync here
+		this.knb.getTableInstances().hasFields("adderId").run(this.knb.getDbCon(), UserInstance.class).forEach(ui -> {
 			try {
 				final User user = this.knb.getJda().retrieveUserById(ui.getAdderId()).complete();
 				final PrivateChannel priv = user.openPrivateChannel().complete();

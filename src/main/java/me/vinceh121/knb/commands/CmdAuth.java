@@ -1,8 +1,8 @@
 package me.vinceh121.knb.commands;
 
-import java.util.List;
+import static com.rethinkdb.RethinkDB.r;
 
-import com.mongodb.client.model.Filters;
+import java.util.List;
 
 import me.vinceh121.jkdecole.Endpoints;
 import me.vinceh121.knb.AbstractCommand;
@@ -34,7 +34,10 @@ public class CmdAuth extends AbstractCommand {
 			return;
 		}
 
-		UserInstance ui = this.knb.getUserInstance(Filters.eq("channelId", chan.getId()));
+		UserInstance ui = this.knb.getTableInstances()
+				.filter(r.hashMap("channelId", chan.getId()))
+				.run(this.knb.getDbCon(), UserInstance.class)
+				.first();
 
 		if (ui != null) {
 			chan.sendMessage("Ce channel est déjà en cours d'utilisation par le bot").queue();

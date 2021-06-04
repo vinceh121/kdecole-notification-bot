@@ -1,5 +1,6 @@
 package me.vinceh121.knb;
 
+import static com.rethinkdb.RethinkDB.r;
 import static net.dv8tion.jda.api.requests.GatewayIntent.DIRECT_MESSAGES;
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
 
@@ -27,11 +28,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.FormattedMessage;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.Conventions;
-import org.bson.codecs.pojo.PojoCodecProvider;
-import org.bson.conversions.Bson;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -50,14 +46,9 @@ import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
+import com.rethinkdb.gen.ast.Table;
+import com.rethinkdb.net.Connection;
+import com.rethinkdb.net.Result;
 
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
@@ -84,9 +75,8 @@ public class Knb {
 	private final Scheduler scheduler;
 	private final JDA jda;
 	private final CommandListener regisListener;
-	private final MongoClient mongo;
-	private final MongoDatabase mongoDb;
-	private final MongoCollection<UserInstance> colInstances;
+	private final Connection dbCon;
+	private final Table tableInstances;
 	private final JobDetail job;
 	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
 	private final MetricRegistry metricRegistry = new MetricRegistry();
@@ -123,24 +113,8 @@ public class Knb {
 
 		Knb.LOG.info("Connecting to DB");
 
-		final CodecRegistry codecRegistry
-				= CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-						CodecRegistries.fromProviders(PojoCodecProvider.builder()
-								.automatic(true)
-								.conventions(Arrays.asList(Conventions.CLASS_AND_PROPERTY_CONVENTION,
-										Conventions.ANNOTATION_CONVENTION, Conventions.OBJECT_ID_GENERATORS))
-								.build()));
-
-		final MongoClientSettings mongoSets = MongoClientSettings.builder()
-				.applicationName("Kdecole-Notification-Bot")
-				.applyConnectionString(new ConnectionString(this.config.getMongo()))
-				.codecRegistry(codecRegistry)
-				.build();
-
-		this.mongo = MongoClients.create(mongoSets);
-		this.mongoDb = this.mongo.getDatabase("knb");
-
-		this.colInstances = this.mongoDb.getCollection("instances", UserInstance.class);
+		this.dbCon = r.connection(this.config.getDbUrl()).connect();
+		this.tableInstances = r.table("instances");
 
 		Knb.LOG.info("Connecting to Discord");
 
@@ -228,23 +202,22 @@ public class Knb {
 	}
 
 	public void addUserInstance(final UserInstance ui) {
-		this.getColInstances().insertOne(ui);
-	}
-
-	public UserInstance getUserInstance(final Bson filter) {
-		return this.getColInstances().find(filter).first();
+		this.tableInstances.insert(ui).run(dbCon);
 	}
 
 	public void updateUserInstance(final UserInstance ui) {
-		this.getColInstances().replaceOne(Filters.eq(ui.getId()), ui);
+		this.tableInstances.get(ui.getId()).replace(ui).run(dbCon);
 	}
 
 	public UserInstance removeGuild(final String guildId) {
-		return this.getColInstances().findOneAndDelete(Filters.eq("guildId", guildId));
+		return this.tableInstances.filter(r.hashMap("guildId", guildId))
+				.delete()
+				.run(dbCon, UserInstance.class)
+				.first();
 	}
 
-	public FindIterable<UserInstance> getAllValidInstances() {
-		return this.getColInstances().find(Filters.exists("kdecoleToken"));
+	public Result<UserInstance> getAllValidInstances() {
+		return this.tableInstances.hasFields("kdecoleToken").run(this.dbCon, UserInstance.class);
 	}
 
 	public CompletableFuture<UserInfo> setupUserInstance(final UserInstance ui, final String username,
@@ -288,7 +261,7 @@ public class Knb {
 			throw new RuntimeException("Votre ENT n'a pas d'agenda");
 		}
 		final List<HWDay> days = agenda.getDays();
-		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
+		final Date last = ui.getLastCheck() == null ? new Date(0L) : Date.from(ui.getLastCheck().toInstant());
 		final List<Homework> homeworks = new ArrayList<>();
 
 		for (final HWDay ar : days) {
@@ -304,7 +277,7 @@ public class Knb {
 	public List<Article> fetchNewsForInstance(final JKdecole kdecole, final UserInstance ui)
 			throws ClientProtocolException, IOException {
 		final List<Article> news = kdecole.getNews();
-		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
+		final Date last = ui.getLastCheck() == null ? new Date(0L) : Date.from(ui.getLastCheck().toInstant());
 		final List<Article> newNews = new ArrayList<>();
 
 		for (final Article ar : news) {
@@ -321,7 +294,7 @@ public class Knb {
 		final List<CommunicationPreview> updatedComs = new ArrayList<>();
 
 		for (final CommunicationPreview c : coms) {
-			if (ui.getLastCheck().before(c.getLastMessage())) {
+			if (Date.from(ui.getLastCheck().toInstant()).before(c.getLastMessage())) {
 				updatedComs.add(c);
 			}
 		}
@@ -341,7 +314,7 @@ public class Knb {
 		final List<Grade> updatedGrades = new ArrayList<>();
 
 		for (final Grade g : grades) {
-			if (ui.getLastCheck().before(g.getDate())) {
+			if (Date.from(ui.getLastCheck().toInstant()).before(g.getDate())) {
 				updatedGrades.add(g);
 			}
 		}
@@ -373,7 +346,7 @@ public class Knb {
 		Knb.LOG.info("Shutting down");
 		this.scheduler.shutdown();
 		this.jda.shutdownNow();
-		this.mongo.close();
+		this.dbCon.close();
 	}
 
 	public JDA getJda() {
@@ -392,10 +365,6 @@ public class Knb {
 		return this.config.getAdmins().contains(id);
 	}
 
-	public MongoCollection<UserInstance> getColInstances() {
-		return this.colInstances;
-	}
-
 	public Config getConfig() {
 		return this.config;
 	}
@@ -406,5 +375,13 @@ public class Knb {
 
 	public MetricRegistry getMetricRegistry() {
 		return this.metricRegistry;
+	}
+
+	public Connection getDbCon() {
+		return dbCon;
+	}
+
+	public Table getTableInstances() {
+		return tableInstances;
 	}
 }

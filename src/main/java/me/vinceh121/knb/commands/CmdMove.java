@@ -1,7 +1,6 @@
 package me.vinceh121.knb.commands;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
+import static com.rethinkdb.RethinkDB.r;
 
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
@@ -38,16 +37,20 @@ public class CmdMove extends AbstractCommand {
 			return;
 		}
 		this.knb.getJda().retrieveUserById(ctx.getUserInstance().getAdderId()).queue(user -> {
-			final UserInstance existing
-					= this.knb.getColInstances().find(Filters.eq("channelId", toChan.getId())).first();
+			final UserInstance existing = this.knb.getTableInstances()
+					.filter(r.hashMap("channelId", toChan.getId()))
+					.run(this.knb.getDbCon(), UserInstance.class)
+					.first();
 
 			if (existing != null) {
 				ctx.getEvent().getChannel().sendMessage("Il existe déjà une intégration dans le salon cible").queue();
 				return;
 			}
 
-			this.knb.getColInstances()
-					.updateOne(Filters.eq(ctx.getUserInstance().getId()), Updates.set("channelId", toChan.getId()));
+			this.knb.getTableInstances()
+					.get(ctx.getUserInstance().getId())
+					.update(r.hashMap("channelId", toChan.getId()))
+					.run(this.knb.getDbCon());
 			ctx.getEvent()
 					.getChannel()
 					.sendMessage("Les notifications seront envoyées dans le salon " + toChan.getName())

@@ -1,7 +1,5 @@
 package me.vinceh121.knb.commands;
 
-import com.mongodb.client.model.Filters;
-
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
@@ -14,7 +12,7 @@ public class CmdLogout extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		this.knb.getColInstances().deleteOne(Filters.eq(ctx.getUserInstance().getId()));
+		this.knb.getTableInstances().get(ctx.getUserInstance().getId()).delete().run(this.knb.getDbCon());
 		ctx.getEvent().getChannel().sendMessage("Votre intégration de ce salon a était supprimé.").queue();
 	}
 

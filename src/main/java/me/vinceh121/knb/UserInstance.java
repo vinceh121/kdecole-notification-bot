@@ -4,20 +4,21 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.bson.types.ObjectId;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public class UserInstance {
-	private ObjectId id;
+	private String id;
 	private String kdecoleToken, adderId, channelId, guildId, endpoint;
+	@JsonDeserialize(using = RethinkDateDeserializer.class)
 	private Date lastCheck = new Date(0L);
 	private boolean showWarnings = true, allowOthers = false, alwaysShowWarnings = false;
 	private List<RelayType> relays = new ArrayList<>();
 
-	public ObjectId getId() {
+	public String getId() {
 		return this.id;
 	}
 
-	public void setId(final ObjectId id) {
+	public void setId(final String id) {
 		this.id = id;
 	}
 

@@ -1,5 +1,7 @@
 package me.vinceh121.knb;
 
+import static com.rethinkdb.RethinkDB.r;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -15,8 +17,6 @@ import org.quartz.JobExecutionException;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 
 import me.vinceh121.jkdecole.JKdecole;
 import me.vinceh121.jkdecole.entities.Article;
@@ -253,7 +253,7 @@ public class CheckingJob implements Job {
 					+ "\n\n"
 					+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
 					.queue();
-			knb.getColInstances().updateOne(Filters.eq(ui.getId()), Updates.set("showWarnings", false));
+			knb.getTableInstances().get(ui.getId()).update(r.hashMap("showWarnings", false)).run(knb.getDbCon());
 			ui.setShowWarnings(false);
 		}
 	}

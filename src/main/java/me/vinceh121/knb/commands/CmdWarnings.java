@@ -1,7 +1,6 @@
 package me.vinceh121.knb.commands;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
+import static com.rethinkdb.RethinkDB.r;
 
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
@@ -15,8 +14,10 @@ public class CmdWarnings extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		this.knb.getColInstances()
-				.updateOne(Filters.eq(ctx.getUserInstance().getId()), Updates.set("showWarnings", true));
+		this.knb.getTableInstances()
+				.get(ctx.getUserInstance().getId())
+				.update(r.hashMap("showWarnings", true))
+				.run(this.knb.getDbCon());
 		ctx.getEvent().getChannel().sendMessage("Les avertissements seront affichés").queue();
 	}
 

@@ -1,5 +1,7 @@
 package me.vinceh121.knb;
 
+import static com.rethinkdb.RethinkDB.r;
+
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +15,6 @@ import org.apache.logging.log4j.message.FormattedMessage;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
-import com.mongodb.client.model.Filters;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -116,7 +117,10 @@ public class CommandListener extends ListenerAdapter {
 		ctx.setAdminCalled(this.knb.isUserAdmin(event.getAuthor().getIdLong()));
 
 		if (cmd.isAuthenticatedCommand()) {
-			final UserInstance ui = this.knb.getUserInstance(Filters.eq("channelId", event.getChannel().getId()));
+			final UserInstance ui = this.knb.getTableInstances()
+					.filter(r.hashMap("channelId", event.getChannel().getId()))
+					.run(this.knb.getDbCon(), UserInstance.class)
+					.first();
 			ctx.setUserInstance(ui);
 			if (ui == null) {
 				event.getChannel().sendMessage("Il n'y a pas d'intégration dans ce canal").queue();

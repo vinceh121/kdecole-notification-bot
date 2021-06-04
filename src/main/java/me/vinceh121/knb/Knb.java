@@ -205,10 +205,6 @@ public class Knb {
 		this.tableInstances.insert(ui).run(dbCon);
 	}
 
-	public void updateUserInstance(final UserInstance ui) {
-		this.tableInstances.get(ui.getId()).replace(ui).run(dbCon);
-	}
-
 	public UserInstance removeGuild(final String guildId) {
 		return this.tableInstances.filter(r.hashMap("guildId", guildId))
 				.delete()

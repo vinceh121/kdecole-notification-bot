@@ -1,12 +1,11 @@
 package me.vinceh121.knb.commands;
 
-import static com.rethinkdb.RethinkDB.r;
-
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
 import me.vinceh121.knb.RelayType;
 import net.dv8tion.jda.api.EmbedBuilder;
+import static com.rethinkdb.RethinkDB.r;
 
 public class CmdRelay extends AbstractCommand {
 
@@ -39,18 +38,11 @@ public class CmdRelay extends AbstractCommand {
 		final RelayType type = RelayType.valueOf(ctx.getArgs().get(0).toUpperCase());
 
 		if (ctx.getUserInstance().getRelays().contains(type)) {
-			this.knb.getTableInstances()
-					.get(ctx.getUserInstance().getId())
-					.update(doc -> r.hashMap("relays", doc.g("relays").difference(r.array(type.name()))))
-					.run(this.knb.getDbCon());
 			ctx.getUserInstance().getRelays().remove(type);
 		} else {
-			this.knb.getTableInstances()
-					.get(ctx.getUserInstance().getId())
-					.update(doc -> r.hashMap("relays", doc.g("relays").append(type.name())))
-					.run(this.knb.getDbCon());
 			ctx.getUserInstance().getRelays().add(type);
 		}
+		this.knb.getTableInstances().update(r.hashMap("relays", ctx.getUserInstance().getRelays()));
 
 		this.printCurrent(ctx);
 	}

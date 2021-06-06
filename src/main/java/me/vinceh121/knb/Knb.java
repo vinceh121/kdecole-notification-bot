@@ -257,7 +257,7 @@ public class Knb {
 			throw new RuntimeException("Votre ENT n'a pas d'agenda");
 		}
 		final List<HWDay> days = agenda.getDays();
-		final Date last = ui.getLastCheck() == null ? new Date(0L) : Date.from(ui.getLastCheck().toInstant());
+		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
 		final List<Homework> homeworks = new ArrayList<>();
 
 		for (final HWDay ar : days) {
@@ -273,7 +273,7 @@ public class Knb {
 	public List<Article> fetchNewsForInstance(final JKdecole kdecole, final UserInstance ui)
 			throws ClientProtocolException, IOException {
 		final List<Article> news = kdecole.getNews();
-		final Date last = ui.getLastCheck() == null ? new Date(0L) : Date.from(ui.getLastCheck().toInstant());
+		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
 		final List<Article> newNews = new ArrayList<>();
 
 		for (final Article ar : news) {
@@ -290,7 +290,7 @@ public class Knb {
 		final List<CommunicationPreview> updatedComs = new ArrayList<>();
 
 		for (final CommunicationPreview c : coms) {
-			if (Date.from(ui.getLastCheck().toInstant()).before(c.getLastMessage())) {
+			if (ui.getLastCheck().before(c.getLastMessage())) {
 				updatedComs.add(c);
 			}
 		}
@@ -310,7 +310,7 @@ public class Knb {
 		final List<Grade> updatedGrades = new ArrayList<>();
 
 		for (final Grade g : grades) {
-			if (Date.from(ui.getLastCheck().toInstant()).before(g.getDate())) {
+			if (ui.getLastCheck().before(g.getDate())) {
 				updatedGrades.add(g);
 			}
 		}

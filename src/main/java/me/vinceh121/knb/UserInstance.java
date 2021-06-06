@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 public class UserInstance {
 	private String id;
 	private String kdecoleToken, adderId, channelId, guildId, endpoint;
-	@JsonDeserialize(using = RethinkDateDeserializer.class)
 	private Date lastCheck = new Date(0L);
 	private boolean showWarnings = true, allowOthers = false, alwaysShowWarnings = false;
 	private List<RelayType> relays = new ArrayList<>();

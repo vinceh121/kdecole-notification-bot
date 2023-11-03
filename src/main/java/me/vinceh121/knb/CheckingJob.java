@@ -28,7 +28,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class CheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
@@ -127,7 +127,7 @@ public class CheckingJob implements Job {
 		}
 
 		final MessageEmbed emb = embBuild.build();
-		chan.sendMessage(emb).queue();
+		chan.sendMessageEmbeds(emb).queue();
 	}
 
 	private void processEmails(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
@@ -169,7 +169,7 @@ public class CheckingJob implements Job {
 		}
 
 		final MessageEmbed emb = embBuild.build();
-		chan.sendMessage(emb).queue();
+		chan.sendMessageEmbeds(emb).queue();
 	}
 
 	private void processArticles(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
@@ -208,7 +208,7 @@ public class CheckingJob implements Job {
 		}
 
 		final MessageEmbed emb = embBuild.build();
-		chan.sendMessage(emb).queue();
+		chan.sendMessageEmbeds(emb).queue();
 	}
 
 	private void processHomework(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
@@ -247,7 +247,7 @@ public class CheckingJob implements Job {
 		}
 
 		final MessageEmbed emb = embBuild.build();
-		chan.sendMessage(emb).queue();
+		chan.sendMessageEmbeds(emb).queue();
 	}
 
 	private void sendWarning(final Knb knb, final TextChannel chan, final UserInstance ui, final String text) {

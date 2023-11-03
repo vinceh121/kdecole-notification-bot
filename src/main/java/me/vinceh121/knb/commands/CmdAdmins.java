@@ -18,7 +18,7 @@ public class CmdAdmins extends AbstractCommand {
 		for (final long id : this.knb.getConfig().getAdmins()) {
 			final User user = this.knb.getJda().retrieveUserById(id).complete();
 			sb.append("\t");
-			sb.append(user == null ? "<@" + id + ">" : user.getAsTag() + "\n");
+			sb.append(user == null ? "<@" + id + ">" : user.getEffectiveName() + "\n");
 		}
 		ctx.getEvent().getChannel().sendMessage(sb.toString()).queue();
 	}

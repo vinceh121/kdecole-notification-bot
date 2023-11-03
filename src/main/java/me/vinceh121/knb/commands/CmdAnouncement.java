@@ -7,8 +7,8 @@ import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
 import me.vinceh121.knb.UserInstance;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 
 public class CmdAnouncement extends AbstractCommand {
 	private static final Logger LOG = LogManager.getLogger(CmdAnouncement.class);

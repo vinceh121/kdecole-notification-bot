@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.security.auth.login.LoginException;
-
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -125,9 +123,6 @@ public class Knb {
 		try {
 			this.jda = build.build();
 			this.jda.awaitReady();
-		} catch (final LoginException e) {
-			Knb.LOG.error("Failed to login to discord", e);
-			throw new RuntimeException(e);
 		} catch (final Exception e) {
 			Knb.LOG.error("Failed to init JDA", e);
 			throw new RuntimeException(e);

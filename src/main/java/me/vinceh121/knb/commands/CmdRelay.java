@@ -56,7 +56,7 @@ public class CmdRelay extends AbstractCommand {
 		for (final RelayType r : RelayType.values()) {
 			build.addField(r.name(), ctx.getUserInstance().getRelays().contains(r) ? "ON" : "OFF", true);
 		}
-		ctx.getEvent().getChannel().sendMessage(build.build()).queue();
+		ctx.getEvent().getChannel().sendMessageEmbeds(build.build()).queue();
 	}
 
 	@Override

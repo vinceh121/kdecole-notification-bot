@@ -2,19 +2,19 @@ package me.vinceh121.knb;
 
 import java.util.List;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class CommandContext {
-	private GuildMessageReceivedEvent event;
+	private MessageReceivedEvent event;
 	private List<String> args;
 	private UserInstance userInstance;
 	private boolean adminCalled;
 
-	public GuildMessageReceivedEvent getEvent() {
+	public MessageReceivedEvent getEvent() {
 		return this.event;
 	}
 
-	public void setEvent(final GuildMessageReceivedEvent event) {
+	public void setEvent(final MessageReceivedEvent event) {
 		this.event = event;
 	}
 

@@ -6,8 +6,8 @@ import me.vinceh121.knb.Knb;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class CmdFeedback extends AbstractCommand {
 
@@ -27,14 +27,14 @@ public class CmdFeedback extends AbstractCommand {
 
 		final User author = ctx.getEvent().getAuthor();
 		final Guild guild = ctx.getEvent().getGuild();
-		final TextChannel channel = ctx.getEvent().getChannel();
+		final TextChannel channel = ctx.getEvent().getChannel().asTextChannel();
 		final Message msg = ctx.getEvent().getMessage();
 
-		feedbackChannel.sendMessage(new EmbedBuilder().setTitle("Feedback", msg.getJumpUrl())
+		feedbackChannel.sendMessageEmbeds(new EmbedBuilder().setTitle("Feedback", msg.getJumpUrl())
 				.setDescription(String.join(" ", ctx.getArgs()))
-				.setAuthor(author.getAsTag(), author.getEffectiveAvatarUrl(), author.getEffectiveAvatarUrl())
+				.setAuthor(author.getEffectiveName(), author.getEffectiveAvatarUrl(), author.getEffectiveAvatarUrl())
 				.addField("Guild", guild.getName() + " (" + guild.getId() + ")", true)
-				.addField("User", author.getAsTag() + " (" + author.getId() + ")", true)
+				.addField("User", author.getEffectiveName() + " (" + author.getId() + ")", true)
 				.addField("Channel", channel.getName() + " (" + channel.getId() + ")", true)
 				.build()).queue(m -> {
 					channel.sendMessage("Votre commentaire a était envoyé, merci !").queue();

@@ -11,7 +11,7 @@ import me.vinceh121.knb.Knb;
 import me.vinceh121.knb.UserInstance;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 public class CmdAuth extends AbstractCommand {
 
@@ -26,7 +26,7 @@ public class CmdAuth extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		final TextChannel chan = ctx.getEvent().getChannel();
+		final GuildMessageChannel chan = ctx.getEvent().getChannel().asGuildMessageChannel();
 		final Member mem = ctx.getEvent().getMember();
 
 		if (!mem.hasPermission(chan, Permission.MANAGE_CHANNEL)) {

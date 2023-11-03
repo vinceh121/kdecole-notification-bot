@@ -21,10 +21,10 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.MentionType;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -50,7 +50,7 @@ public class CommandListener extends ListenerAdapter {
 		try {
 			final TextChannel ch;
 			if (g.getDefaultChannel() != null) {
-				ch = g.getDefaultChannel();
+				ch = g.getDefaultChannel().asTextChannel();
 			} else {
 				ch = g.getTextChannels().get(0);
 			}
@@ -60,9 +60,9 @@ public class CommandListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildMessageReceived(final GuildMessageReceivedEvent event) {
+	public void onMessageReceived(MessageReceivedEvent event) {
 		final Message msg = event.getMessage();
-		if (!msg.isMentioned(this.knb.getJda().getSelfUser(), MentionType.USER)) {
+		if (!msg.getMentions().isMentioned(this.knb.getJda().getSelfUser(), MentionType.USER)) {
 			return;
 		}
 
@@ -144,7 +144,8 @@ public class CommandListener extends ListenerAdapter {
 							.queue();
 					return;
 				}
-				if (!event.getMember().hasPermission(event.getChannel(), Permission.MANAGE_CHANNEL)) {
+				if (!event.getMember()
+						.hasPermission(event.getChannel().asGuildMessageChannel(), Permission.MANAGE_CHANNEL)) {
 					event.getChannel()
 							.sendMessage(
 									"Vous devez avoir la permission `Gérer les salons` pour utiliser cette commande")

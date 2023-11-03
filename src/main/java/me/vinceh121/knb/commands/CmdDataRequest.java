@@ -11,7 +11,7 @@ import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
 import me.vinceh121.knb.UserInstance;
 import net.dv8tion.jda.api.entities.Message.MentionType;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class CmdDataRequest extends AbstractCommand {
 

@@ -36,7 +36,7 @@ public class CmdApropos extends AbstractCommand {
 
 		build.addField(CmdApropos.EASTER_FIELD.get(CmdApropos.RND.nextInt(CmdApropos.EASTER_FIELD.size())));
 
-		ctx.getEvent().getChannel().sendMessage(build.build()).queue();
+		ctx.getEvent().getChannel().sendMessageEmbeds(build.build()).queue();
 	}
 
 	@Override

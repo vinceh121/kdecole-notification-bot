@@ -242,7 +242,7 @@ public class SkolengoCheckingJob implements Job {
 		embBuild.setFooter(estabName);
 
 		for (final News n : news) {
-			final Field f = new Field(n.getAuthor() + " : " + n.getTitle(), n.getShortContent(), true);
+			final Field f = new Field(n.getTitle(), n.getShortContent(), true);
 			embBuild.addField(f);
 		}
 

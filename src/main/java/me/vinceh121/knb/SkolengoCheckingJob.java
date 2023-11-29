@@ -2,9 +2,16 @@ package me.vinceh121.knb;
 
 import static com.rethinkdb.RethinkDB.r;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
@@ -18,21 +25,21 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 
-import me.vinceh121.jkdecole.JKdecole;
-import me.vinceh121.jkdecole.entities.Article;
-import me.vinceh121.jkdecole.entities.grades.Grade;
-import me.vinceh121.jkdecole.entities.homework.Homework;
-import me.vinceh121.jkdecole.entities.info.UserInfo;
 import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
+import me.vinceh121.jskolengo.JSkolengo;
+import me.vinceh121.jskolengo.entities.StudentUserInfo;
+import me.vinceh121.jskolengo.entities.agenda.Homework;
+import me.vinceh121.jskolengo.entities.evaluation.EvaluationDetail;
+import me.vinceh121.jskolengo.entities.info.News;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
-public class CheckingJob implements Job {
+public class SkolengoCheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
-	private static final Logger LOG = LogManager.getLogger(CheckingJob.class);
+	private static final Logger LOG = LogManager.getLogger(SkolengoCheckingJob.class);
 	private Counter metricNewsCount, metricEmailsCount, metricGradesCount;
 	private Timer metricProcessTime;
 
@@ -51,52 +58,72 @@ public class CheckingJob implements Job {
 
 		this.setupMetrics(knb.getMetricRegistry());
 
-		knb.getAllValidInstances().forEach(u -> {
-			this.metricProcessTime.time(() -> {
-				final JKdecole kdecole = knb.getKdecole();
-				kdecole.setToken(u.getKdecoleToken());
-				kdecole.setEndpoint(u.getEndpoint());
-				UserInfo info;
-				try {
-					info = kdecole.getUserInfo();
-				} catch (final Exception e) {
-					CheckingJob.LOG.error(
-							new FormattedMessage("Error while fetching user info for instance {}", u.getId()), e);
-					info = new UserInfo();
-					info.setNom("");
-				}
-				if (u.getRelays().contains(RelayType.ARTICLES)) {
-					this.processArticles(knb, kdecole, info, u);
-				}
-				if (u.getRelays().contains(RelayType.EMAILS)) {
-					this.processEmails(knb, kdecole, info, u);
-				}
-				if (u.getRelays().contains(RelayType.NOTES)) {
-					this.processGrades(knb, kdecole, info, u);
-				}
-				if (u.getRelays().contains(RelayType.DEVOIRS)) {
-					this.processHomework(knb, kdecole, info, u);
-				}
-				u.setLastCheck(new Date());
-				knb.getTableInstances()
-						.get(u.getId())
-						.update(r.hashMap("lastCheck", new Date().getTime()))
-						.run(knb.getDbCon());
+		try (final JSkolengo sko = new JSkolengo()) {
+
+			knb.getAllValidSkolengoInstances().forEach(u -> {
+				this.metricProcessTime.time(() -> {
+					final TextChannel chan = knb.getJda().getTextChannelById(u.getChannelId());
+
+					sko.setBearerToken(u.getTokens().getAccessToken().toString());
+					sko.setEmsCode(u.getEmsCode());
+					sko.setSchoolId(u.getSchoolId());
+
+					StudentUserInfo info;
+					try {
+						info = sko.fetchUserInfo().get();
+					} catch (final Exception e) {
+						SkolengoCheckingJob.LOG.error(
+								new FormattedMessage("Error while fetching user info for instance {}", u.getId()), e);
+						this.sendWarning(knb, chan, u,
+								"Erreur dans la récupération des informations utilisateur: " + e);
+						return;
+					}
+
+					if (u.getRelays().contains(RelayType.ARTICLES)) {
+						this.processArticles(knb, sko, info, u);
+					}
+					if (u.getRelays().contains(RelayType.EMAILS)) {
+						this.processEmails(knb, sko, info, u);
+					}
+					if (u.getRelays().contains(RelayType.NOTES)) {
+						this.processGrades(knb, sko, info, u);
+					}
+					if (u.getRelays().contains(RelayType.DEVOIRS)) {
+						this.processHomework(knb, sko, info, u);
+					}
+
+					u.setLastCheck(new Date());
+					knb.getTableInstances()
+							.get(u.getId())
+							.update(r.hashMap("lastCheck", new Date().getTime()))
+							.run(knb.getDbCon());
+				});
 			});
-		});
+		} catch (IOException e1) {
+			LOG.error("Failed to close Skolengo client", e1);
+		}
+
 		knb.getJda().getPresence().setActivity(oldAct);
 	}
 
-	private void processGrades(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
+	private void processGrades(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
+			final SkolengoUserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
-		final List<Grade> grades;
+		final List<EvaluationDetail> grades;
+
 		try {
-			grades = knb.fetchNewGradesForInstance(kde, ui);
-		} catch (final UnsupportedOperationException e) {
-			this.sendWarning(knb, chan, ui, "Votre ENT n'a pas de module de notes activé");
-			return;
+			grades = sko.fetchEvaluationsSetting()
+					.stream()
+					.flatMap(settings -> settings.getPeriods().stream())
+					.flatMap(period -> sko.fetchEvaluations(period.getId()).stream())
+					.flatMap(eval -> eval.getEvaluations().stream())
+					.filter(detail -> detail.getDateTime()
+							.toInstant(ZoneOffset.UTC)
+							.isAfter(ui.getLastCheck().toInstant()))
+					.collect(Collectors.toList());
 		} catch (final Exception e) {
-			CheckingJob.LOG.error(new FormattedMessage("Error while getting grades for instance {}", ui.getId()), e);
+			SkolengoCheckingJob.LOG
+					.error(new FormattedMessage("Error while getting grades for instance {}", ui.getId()), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles notes: " + e);
 			return;
 		}
@@ -107,22 +134,23 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		final String estabName = info.getEtabs().get(0).getNom();
+		final String estabName = info.getSchool().getName();
 
-		final Date oldest = Collections.min(grades, (o1, o2) -> o1.getDate().compareTo(o2.getDate())).getDate();
+		final LocalDateTime oldest
+				= Collections.min(grades, (o1, o2) -> o1.getDateTime().compareTo(o2.getDateTime())).getDateTime();
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
-		embBuild.setTimestamp(oldest.toInstant());
+		embBuild.setColor(SkolengoCheckingJob.COLOR_ARTICLE);
+		embBuild.setTimestamp(oldest);
 		embBuild.setTitle("Nouvelles notes");
 		embBuild.setFooter(estabName);
 
-		for (final Grade n : grades) {
-			final Field f = new Field(n.getSubject() + " : " + n.getTitle(),
-					n.getGrade() + "/" + n.getBareme() + "\nCoef: " + n.getCoef(), true);
+		for (final EvaluationDetail n : grades) {
+			final Field f = new Field(n.getTopic() + " : " + n.getTitle(),
+					n.getEvaluationResult().getMark() + "/" + n.getScale() + "\nCoef: " + n.getCoefficient(), true);
 			embBuild.addField(f);
 		}
 
@@ -130,15 +158,17 @@ public class CheckingJob implements Job {
 		chan.sendMessageEmbeds(emb).queue();
 	}
 
-	private void processEmails(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
+	private void processEmails(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
+			final SkolengoUserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<CommunicationPreview> coms;
+
 		try {
-			coms = knb.fetchNewMailsForInstance(kde, ui);
+			coms = Arrays.asList(); // TODO
 		} catch (final Exception e) {
-			CheckingJob.LOG
+			SkolengoCheckingJob.LOG
 					.error(new FormattedMessage("Error while getting communications for instance {}", ui.getId()), e);
-			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles communications: " + e);
+			this.sendWarning(knb, chan, ui, "Une erreur est survenue en récupérant les nouvelles communications: " + e);
 			return;
 		}
 
@@ -148,7 +178,7 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		final String estabName = info.getEtabs().get(0).getNom();
+		final String estabName = info.getSchool().getName();
 
 		final Date oldest = Collections.min(coms, (o1, o2) -> o1.getLastMessage().compareTo(o2.getLastMessage()))
 				.getLastMessage();
@@ -157,7 +187,7 @@ public class CheckingJob implements Job {
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
+		embBuild.setColor(SkolengoCheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouvelles communications");
 		embBuild.setFooter(estabName);
@@ -172,14 +202,21 @@ public class CheckingJob implements Job {
 		chan.sendMessageEmbeds(emb).queue();
 	}
 
-	private void processArticles(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
+	private void processArticles(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
+			final SkolengoUserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
-		final List<Article> news;
+		final List<News> news;
+
 		try {
-			news = knb.fetchNewsForInstance(kde, ui);
+			news = sko.fetchSchoolInfo()
+					.get()
+					.stream()
+					.filter(n -> n.getPublicationDateTime().toInstant().isAfter(ui.getLastCheck().toInstant()))
+					.collect(Collectors.toList());
 		} catch (final Exception e) {
-			CheckingJob.LOG.error(new FormattedMessage("Error while getting news for instance {}", ui.getId()), e);
-			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux articles: " + e);
+			SkolengoCheckingJob.LOG.error(new FormattedMessage("Error while getting news for instance {}", ui.getId()),
+					e);
+			this.sendWarning(knb, chan, ui, "Une erreur est survenue en récupérant les nouveaux articles: " + e);
 			return;
 		}
 
@@ -189,21 +226,23 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		final String estabName = info.getEtabs().get(0).getNom();
+		final String estabName = info.getSchool().getName();
 
-		final Date oldest = Collections.min(news, (o1, o2) -> o1.getDate().compareTo(o2.getDate())).getDate();
+		final ZonedDateTime oldest
+				= Collections.min(news, (o1, o2) -> o1.getPublicationDateTime().compareTo(o2.getPublicationDateTime()))
+						.getPublicationDateTime();
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
+		embBuild.setColor(SkolengoCheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouveaux articles");
 		embBuild.setFooter(estabName);
 
-		for (final Article n : news) {
-			final Field f = new Field(n.getAuthor(), n.getTitle(), true);
+		for (final News n : news) {
+			final Field f = new Field(n.getAuthor() + " : " + n.getTitle(), n.getShortContent(), true);
 			embBuild.addField(f);
 		}
 
@@ -211,13 +250,19 @@ public class CheckingJob implements Job {
 		chan.sendMessageEmbeds(emb).queue();
 	}
 
-	private void processHomework(final Knb knb, final JKdecole kde, final UserInfo info, final UserInstance ui) {
+	private void processHomework(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
+			final SkolengoUserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<Homework> hws;
+
 		try {
-			hws = knb.fetchAgendaForInstance(kde, ui);
+			// FIXME
+			hws = sko.fetchHomeworkAssignments(LocalDate.from(ui.getLastCheck().toInstant()), LocalDate.now())
+					.stream()
+					.collect(Collectors.toList());
 		} catch (final Exception e) {
-			CheckingJob.LOG.error(new FormattedMessage("Error while getting homework for instance {}", ui.getId()), e);
+			SkolengoCheckingJob.LOG
+					.error(new FormattedMessage("Error while getting homework for instance {}", ui.getId()), e);
 			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux devoirs: " + e);
 			return;
 		}
@@ -228,21 +273,21 @@ public class CheckingJob implements Job {
 			return;
 		}
 
-		final String estabName = info.getEtabs().get(0).getNom();
+		final String estabName = info.getSchool().getName();
 
-		final Date oldest = Collections.min(hws, (o1, o2) -> o1.getGivenAt().compareTo(o2.getGivenAt())).getGivenAt();
+		final Date oldest = ui.getLastCheck(); // FIXME
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
-		embBuild.setColor(CheckingJob.COLOR_ARTICLE);
+		embBuild.setColor(SkolengoCheckingJob.COLOR_ARTICLE);
 		embBuild.setTimestamp(oldest.toInstant());
 		embBuild.setTitle("Nouveaux devoirs");
 		embBuild.setFooter(estabName);
 
 		for (final Homework n : hws) {
-			final Field f = new Field(n.getType() + " : " + n.getSubject(), n.getTitle(), true);
+			final Field f = new Field(n.getSubject().getLabel(), n.getTitle(), true);
 			embBuild.addField(f);
 		}
 
@@ -250,7 +295,7 @@ public class CheckingJob implements Job {
 		chan.sendMessageEmbeds(emb).queue();
 	}
 
-	private void sendWarning(final Knb knb, final TextChannel chan, final UserInstance ui, final String text) {
+	private void sendWarning(final Knb knb, final TextChannel chan, final SkolengoUserInstance ui, final String text) {
 		if (ui.isShowWarnings() || ui.isAlwaysShowWarnings()) {
 			chan.sendMessage(text
 					+ "\n\n"

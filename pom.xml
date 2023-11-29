@@ -38,6 +38,11 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+		<repository>
+			<id>vinceh121-snapshots</id>
+			<name>vinceh121's Maven repository</name>
+			<url>https://maven.vinceh121.me/snapshots</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -51,6 +56,16 @@
 			<groupId>com.github.vinceh121</groupId>
 			<artifactId>jkdecole</artifactId>
 			<version>fdb58c3efdf49c8a6a3df3c5e851fc42bca00ac6</version>
+		</dependency>
+		<dependency>
+			<groupId>me.vinceh121.jskolengo</groupId>
+			<artifactId>wrapper</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>oauth2-oidc-sdk</artifactId>
+			<version>11.6</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.quartz-scheduler/quartz -->
 		<dependency>

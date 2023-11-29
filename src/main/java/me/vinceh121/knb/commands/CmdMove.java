@@ -5,7 +5,7 @@ import static com.rethinkdb.RethinkDB.r;
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
-import me.vinceh121.knb.UserInstance;
+import me.vinceh121.knb.KdecoleUserInstance;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
@@ -37,9 +37,9 @@ public class CmdMove extends AbstractCommand {
 			return;
 		}
 		this.knb.getJda().retrieveUserById(ctx.getUserInstance().getAdderId()).queue(user -> {
-			final UserInstance existing = this.knb.getTableInstances()
+			final KdecoleUserInstance existing = this.knb.getTableInstances()
 					.filter(r.hashMap("channelId", toChan.getId()))
-					.run(this.knb.getDbCon(), UserInstance.class)
+					.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 					.first();
 
 			if (existing != null) {

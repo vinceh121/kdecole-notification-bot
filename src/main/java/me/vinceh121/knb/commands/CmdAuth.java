@@ -8,7 +8,7 @@ import me.vinceh121.jkdecole.Endpoints;
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
-import me.vinceh121.knb.UserInstance;
+import me.vinceh121.knb.KdecoleUserInstance;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
@@ -34,9 +34,9 @@ public class CmdAuth extends AbstractCommand {
 			return;
 		}
 
-		UserInstance ui = this.knb.getTableInstances()
+		KdecoleUserInstance ui = this.knb.getTableInstances()
 				.filter(r.hashMap("channelId", chan.getId()))
-				.run(this.knb.getDbCon(), UserInstance.class)
+				.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 				.first();
 
 		if (ui != null) {
@@ -70,7 +70,7 @@ public class CmdAuth extends AbstractCommand {
 			return;
 		}
 
-		ui = new UserInstance();
+		ui = new KdecoleUserInstance();
 		ui.setAdderId(mem.getId());
 		ui.setChannelId(chan.getId());
 		ui.setGuildId(chan.getGuild().getId());

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import me.vinceh121.knb.AbstractCommand;
 import me.vinceh121.knb.CommandContext;
 import me.vinceh121.knb.Knb;
-import me.vinceh121.knb.UserInstance;
+import me.vinceh121.knb.KdecoleUserInstance;
 import net.dv8tion.jda.api.entities.Message.MentionType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
@@ -47,7 +47,7 @@ public class CmdDataRequest extends AbstractCommand {
 				privChan.sendMessage(headSb.toString()).queue();
 				this.knb.getTableInstances()
 						.filter(r.hashMap("adderId", user.getId()))
-						.run(this.knb.getDbCon(), UserInstance.class)
+						.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 						.forEach(ui -> {
 							final StringBuilder sb = new StringBuilder();
 							this.makeInstance(sb, ui);
@@ -57,7 +57,7 @@ public class CmdDataRequest extends AbstractCommand {
 		});
 	}
 
-	private void makeInstance(final StringBuilder sb, final UserInstance ui) {
+	private void makeInstance(final StringBuilder sb, final KdecoleUserInstance ui) {
 		final TextChannel chan = this.knb.getJda().getTextChannelById(ui.getChannelId());
 		final ObjectNode json = this.knb.getMapper().valueToTree(ui);
 		json.put("id", ui.getId());

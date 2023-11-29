@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class UserInstance {
+public abstract class AbstractUserInstance {
 	private String id;
-	private String kdecoleToken, adderId, channelId, guildId, endpoint;
+	private String adderId;
+	private String channelId;
+	private String guildId;
 	private Date lastCheck = new Date(0L);
-	private boolean showWarnings = true, allowOthers = false, alwaysShowWarnings = false;
-	private List<RelayType> relays = new ArrayList<>();
+	private boolean showWarnings = true;
+	private boolean allowOthers = false;
+	private boolean alwaysShowWarnings = false;
+	private final List<RelayType> relays = new ArrayList<>();
 
 	public String getId() {
 		return this.id;
@@ -17,14 +21,6 @@ public class UserInstance {
 
 	public void setId(final String id) {
 		this.id = id;
-	}
-
-	public String getKdecoleToken() {
-		return this.kdecoleToken;
-	}
-
-	public void setKdecoleToken(final String kdecoleToken) {
-		this.kdecoleToken = kdecoleToken;
 	}
 
 	public String getAdderId() {
@@ -49,14 +45,6 @@ public class UserInstance {
 
 	public void setLastCheck(final Date lastCheck) {
 		this.lastCheck = lastCheck;
-	}
-
-	public String getEndpoint() {
-		return this.endpoint;
-	}
-
-	public void setEndpoint(final String endpoint) {
-		this.endpoint = endpoint;
 	}
 
 	public boolean isShowWarnings() {
@@ -87,10 +75,6 @@ public class UserInstance {
 		return this.relays;
 	}
 
-	public void setRelays(final List<RelayType> relays) {
-		this.relays = relays;
-	}
-
 	public String getGuildId() {
 		return this.guildId;
 	}
@@ -99,30 +83,4 @@ public class UserInstance {
 		this.guildId = guildId;
 	}
 
-	@Override
-	public String toString() {
-		return "UserInstance [id="
-				+ id
-				+ ", kdecoleToken="
-				+ kdecoleToken
-				+ ", adderId="
-				+ adderId
-				+ ", channelId="
-				+ channelId
-				+ ", guildId="
-				+ guildId
-				+ ", endpoint="
-				+ endpoint
-				+ ", lastCheck="
-				+ lastCheck
-				+ ", showWarnings="
-				+ showWarnings
-				+ ", allowOthers="
-				+ allowOthers
-				+ ", alwaysShowWarnings="
-				+ alwaysShowWarnings
-				+ ", relays="
-				+ relays
-				+ "]";
-	}
 }

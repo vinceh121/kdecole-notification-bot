@@ -74,7 +74,7 @@ public class Knb {
 	private final JDA jda;
 	private final CommandListener regisListener;
 	private final Connection dbCon;
-	private final Table tableInstances;
+	private final Table tableKdecoleInstances, tableSkolengoInstances;
 	private final JobDetail job;
 	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
 	private final MetricRegistry metricRegistry = new MetricRegistry();
@@ -112,7 +112,8 @@ public class Knb {
 		Knb.LOG.info("Connecting to DB");
 
 		this.dbCon = r.connection(this.config.getDbUrl()).connect();
-		this.tableInstances = r.table("instances");
+		this.tableKdecoleInstances = r.table("kdecoleInstances");
+		this.tableSkolengoInstances = r.table("skolengoInstances");
 
 		Knb.LOG.info("Connecting to Discord");
 
@@ -141,7 +142,7 @@ public class Knb {
 		}
 		this.regisListener = new CommandListener(this, this.cmdMap);
 
-		this.job = JobBuilder.newJob().ofType(CheckingJob.class).withIdentity("checker", "jobs").build();
+		this.job = JobBuilder.newJob().ofType(KdecoleCheckingJob.class).withIdentity("checker", "jobs").build();
 	}
 
 	private void start() {
@@ -196,22 +197,26 @@ public class Knb {
 		this.metricRegistry.register(MetricRegistry.name("discord", "ping", "rest"), gaugeRestPing);
 	}
 
-	public void addUserInstance(final UserInstance ui) {
-		this.tableInstances.insert(ui).run(dbCon);
+	public void addUserInstance(final KdecoleUserInstance ui) {
+		this.tableKdecoleInstances.insert(ui).run(dbCon);
 	}
 
-	public UserInstance removeGuild(final String guildId) {
-		return this.tableInstances.filter(r.hashMap("guildId", guildId))
+	public KdecoleUserInstance removeGuild(final String guildId) {
+		return this.tableKdecoleInstances.filter(r.hashMap("guildId", guildId))
 				.delete()
-				.run(dbCon, UserInstance.class)
+				.run(dbCon, KdecoleUserInstance.class)
 				.first();
 	}
 
-	public Result<UserInstance> getAllValidInstances() {
-		return this.tableInstances.hasFields("kdecoleToken").run(this.dbCon, UserInstance.class);
+	public Result<KdecoleUserInstance> getAllValidKdecoleInstances() {
+		return this.tableKdecoleInstances.hasFields("kdecoleToken").run(this.dbCon, KdecoleUserInstance.class);
 	}
 
-	public CompletableFuture<UserInfo> setupUserInstance(final UserInstance ui, final String username,
+	public Result<SkolengoUserInstance> getAllValidSkolengoInstances() {
+		return this.tableSkolengoInstances.hasFields("tokens").run(this.dbCon, SkolengoUserInstance.class);
+	}
+
+	public CompletableFuture<UserInfo> setupUserInstance(final KdecoleUserInstance ui, final String username,
 			final String password, final String endpoint) {
 		return CompletableFuture.supplyAsync(() -> {
 			final JKdecole kdecole = this.getKdecole();
@@ -245,7 +250,7 @@ public class Knb {
 		});
 	}
 
-	public List<Homework> fetchAgendaForInstance(final JKdecole kdecole, final UserInstance ui)
+	public List<Homework> fetchAgendaForInstance(final JKdecole kdecole, final KdecoleUserInstance ui)
 			throws ClientProtocolException, IOException {
 		final Agenda agenda = kdecole.getAgenda();
 		if (!agenda.isHwOpen()) {
@@ -265,7 +270,7 @@ public class Knb {
 		return homeworks;
 	}
 
-	public List<Article> fetchNewsForInstance(final JKdecole kdecole, final UserInstance ui)
+	public List<Article> fetchNewsForInstance(final JKdecole kdecole, final KdecoleUserInstance ui)
 			throws ClientProtocolException, IOException {
 		final List<Article> news = kdecole.getNews();
 		final Date last = ui.getLastCheck() == null ? new Date(0L) : ui.getLastCheck();
@@ -279,7 +284,7 @@ public class Knb {
 		return newNews;
 	}
 
-	public List<CommunicationPreview> fetchNewMailsForInstance(final JKdecole kdecole, final UserInstance ui)
+	public List<CommunicationPreview> fetchNewMailsForInstance(final JKdecole kdecole, final KdecoleUserInstance ui)
 			throws ClientProtocolException, IOException {
 		final List<CommunicationPreview> coms = kdecole.getInbox(-1).getComs();
 		final List<CommunicationPreview> updatedComs = new ArrayList<>();
@@ -293,7 +298,7 @@ public class Knb {
 		return updatedComs;
 	}
 
-	public List<Grade> fetchNewGradesForInstance(final JKdecole kdecole, final UserInstance ui)
+	public List<Grade> fetchNewGradesForInstance(final JKdecole kdecole, final KdecoleUserInstance ui)
 			throws ClientProtocolException, IOException {
 		final GradeMessage msg = kdecole.getStudentGrades();
 
@@ -373,6 +378,6 @@ public class Knb {
 	}
 
 	public Table getTableInstances() {
-		return tableInstances;
+		return tableKdecoleInstances;
 	}
 }

@@ -118,11 +118,11 @@ public class CommandListener extends ListenerAdapter {
 		ctx.setAdminCalled(this.knb.isUserAdmin(event.getAuthor().getIdLong()));
 
 		if (cmd.isAuthenticatedCommand()) {
-			final UserInstance ui;
+			final KdecoleUserInstance ui;
 			try {
 				ui = this.knb.getTableInstances()
 						.filter(r.hashMap("channelId", event.getChannel().getId()))
-						.run(this.knb.getDbCon(), UserInstance.class)
+						.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 						.first();
 			} catch (final NoSuchElementException e) {
 				event.getChannel().sendMessage("Il n'y a pas d'intégration dans ce canal").queue();

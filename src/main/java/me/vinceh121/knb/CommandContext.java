@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 public class CommandContext {
 	private MessageReceivedEvent event;
 	private List<String> args;
-	private UserInstance userInstance;
+	private KdecoleUserInstance userInstance;
 	private boolean adminCalled;
 
 	public MessageReceivedEvent getEvent() {
@@ -26,11 +26,11 @@ public class CommandContext {
 		this.args = args;
 	}
 
-	public UserInstance getUserInstance() {
+	public KdecoleUserInstance getUserInstance() {
 		return this.userInstance;
 	}
 
-	public void setUserInstance(final UserInstance userInstance) {
+	public void setUserInstance(final KdecoleUserInstance userInstance) {
 		this.userInstance = userInstance;
 	}
 

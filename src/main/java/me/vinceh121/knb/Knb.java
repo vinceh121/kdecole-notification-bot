@@ -75,7 +75,7 @@ public class Knb {
 	private final CommandListener regisListener;
 	private final Connection dbCon;
 	private final Table tableKdecoleInstances, tableSkolengoInstances;
-	private final JobDetail job;
+	private final JobDetail kdecoleJob, skolengoJob;
 	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
 	private final MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -142,24 +142,39 @@ public class Knb {
 		}
 		this.regisListener = new CommandListener(this, this.cmdMap);
 
-		this.job = JobBuilder.newJob().ofType(KdecoleCheckingJob.class).withIdentity("checker", "jobs").build();
+		this.kdecoleJob
+				= JobBuilder.newJob().ofType(KdecoleCheckingJob.class).withIdentity("kdecole-checker", "jobs").build();
+		this.skolengoJob = JobBuilder.newJob()
+				.ofType(SkolengoCheckingJob.class)
+				.withIdentity("skolengo-checker", "jobs")
+				.build();
 	}
 
 	private void start() {
 		Knb.LOG.info("Starting...");
 		this.jda.addEventListener(this.regisListener);
 
-		final Trigger trig = TriggerBuilder.newTrigger()
-				.forJob(this.job)
+		final Trigger kdecoleTrig = TriggerBuilder.newTrigger()
+				.forJob(this.kdecoleJob)
 				.startNow()
-				.withIdentity("checker-trig")
+				.withIdentity("kdecole-checker-trig")
 				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(this.config.getDelay()))
 				.build();
 
-		this.job.getJobDataMap().put("knb", this);
+		this.kdecoleJob.getJobDataMap().put("knb", this);
+
+		final Trigger skolengoTrig = TriggerBuilder.newTrigger()
+				.forJob(this.skolengoJob)
+				.startNow()
+				.withIdentity("skolengo-checker-trig")
+				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(this.config.getDelay()))
+				.build();
+
+		this.skolengoJob.getJobDataMap().put("knb", this);
 
 		try {
-			this.scheduler.scheduleJob(this.job, trig);
+			this.scheduler.scheduleJob(this.kdecoleJob, kdecoleTrig);
+			this.scheduler.scheduleJob(this.skolengoJob, skolengoTrig);
 		} catch (final SchedulerException e) {
 			Knb.LOG.error("Could not schedule checking job", e);
 			System.exit(-5);
@@ -319,7 +334,8 @@ public class Knb {
 	}
 
 	public void manualTriggerAll() throws SchedulerException {
-		this.scheduler.triggerJob(this.job.getKey());
+		this.scheduler.triggerJob(this.kdecoleJob.getKey());
+		this.scheduler.triggerJob(this.skolengoJob.getKey());
 	}
 
 	public JKdecole getKdecole() {

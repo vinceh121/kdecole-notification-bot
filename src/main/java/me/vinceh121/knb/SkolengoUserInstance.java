@@ -1,17 +1,15 @@
 package me.vinceh121.knb;
 
-import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
-
 public class SkolengoUserInstance extends AbstractUserInstance {
-	private OIDCTokens tokens;
+	private OIDCTokenSet tokens;
 	private String emsCode;
 	private String schoolId;
 
-	public OIDCTokens getTokens() {
+	public OIDCTokenSet getTokens() {
 		return tokens;
 	}
 
-	public void setTokens(OIDCTokens tokens) {
+	public void setTokens(OIDCTokenSet tokens) {
 		this.tokens = tokens;
 	}
 

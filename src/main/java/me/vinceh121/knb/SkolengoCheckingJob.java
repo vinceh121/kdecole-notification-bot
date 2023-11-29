@@ -64,7 +64,7 @@ public class SkolengoCheckingJob implements Job {
 				this.metricProcessTime.time(() -> {
 					final TextChannel chan = knb.getJda().getTextChannelById(u.getChannelId());
 
-					sko.setBearerToken(u.getTokens().getAccessToken().toString());
+					sko.setBearerToken(u.getTokens().getAccessToken());
 					sko.setEmsCode(u.getEmsCode());
 					sko.setSchoolId(u.getSchoolId());
 

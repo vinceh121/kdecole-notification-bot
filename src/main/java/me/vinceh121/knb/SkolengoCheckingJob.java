@@ -5,6 +5,7 @@ import static com.rethinkdb.RethinkDB.r;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -93,7 +94,7 @@ public class SkolengoCheckingJob implements Job {
 					}
 
 					u.setLastCheck(new Date());
-					knb.getTableInstances()
+					knb.getTableSkolengoInstances()
 							.get(u.getId())
 							.update(r.hashMap("lastCheck", new Date().getTime()))
 							.run(knb.getDbCon());
@@ -257,9 +258,10 @@ public class SkolengoCheckingJob implements Job {
 
 		try {
 			// FIXME
-			hws = sko.fetchHomeworkAssignments(LocalDate.from(ui.getLastCheck().toInstant()), LocalDate.now())
-					.stream()
-					.collect(Collectors.toList());
+			hws = sko.fetchHomeworkAssignments(
+					LocalDate
+							.from(ui.getLastCheck().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()),
+					LocalDate.now()).stream().collect(Collectors.toList());
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG
 					.error(new FormattedMessage("Error while getting homework for instance {}", ui.getId()), e);
@@ -301,7 +303,7 @@ public class SkolengoCheckingJob implements Job {
 					+ "\n\n"
 					+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
 					.queue();
-			knb.getTableInstances().get(ui.getId()).update(r.hashMap("showWarnings", false)).run(knb.getDbCon());
+			knb.getTableKdecoleInstances().get(ui.getId()).update(r.hashMap("showWarnings", false)).run(knb.getDbCon());
 			ui.setShowWarnings(false);
 		}
 	}

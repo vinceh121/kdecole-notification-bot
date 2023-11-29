@@ -120,7 +120,7 @@ public class CommandListener extends ListenerAdapter {
 		if (cmd.isAuthenticatedCommand()) {
 			final KdecoleUserInstance ui;
 			try {
-				ui = this.knb.getTableInstances()
+				ui = this.knb.getTableKdecoleInstances()
 						.filter(r.hashMap("channelId", event.getChannel().getId()))
 						.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 						.first();

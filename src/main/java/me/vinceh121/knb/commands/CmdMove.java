@@ -37,7 +37,7 @@ public class CmdMove extends AbstractCommand {
 			return;
 		}
 		this.knb.getJda().retrieveUserById(ctx.getUserInstance().getAdderId()).queue(user -> {
-			final KdecoleUserInstance existing = this.knb.getTableInstances()
+			final KdecoleUserInstance existing = this.knb.getTableKdecoleInstances()
 					.filter(r.hashMap("channelId", toChan.getId()))
 					.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 					.first();
@@ -47,7 +47,7 @@ public class CmdMove extends AbstractCommand {
 				return;
 			}
 
-			this.knb.getTableInstances()
+			this.knb.getTableKdecoleInstances()
 					.get(ctx.getUserInstance().getId())
 					.update(r.hashMap("channelId", toChan.getId()))
 					.run(this.knb.getDbCon());

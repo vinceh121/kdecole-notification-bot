@@ -12,7 +12,7 @@ public class CmdLogout extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		this.knb.getTableInstances().get(ctx.getUserInstance().getId()).delete().run(this.knb.getDbCon());
+		this.knb.getTableKdecoleInstances().get(ctx.getUserInstance().getId()).delete().run(this.knb.getDbCon());
 		ctx.getEvent().getChannel().sendMessage("Votre intégration de ce salon a était supprimé.").queue();
 	}
 

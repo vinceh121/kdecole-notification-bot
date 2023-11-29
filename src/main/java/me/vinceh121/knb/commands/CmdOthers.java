@@ -14,7 +14,7 @@ public class CmdOthers extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		this.knb.getTableInstances()
+		this.knb.getTableKdecoleInstances()
 				.get(ctx.getUserInstance().getId())
 				.update(r.hashMap("allowOthers", !ctx.getUserInstance().isAllowOthers()))
 				.run(this.knb.getDbCon());

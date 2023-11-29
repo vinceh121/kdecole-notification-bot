@@ -45,7 +45,7 @@ public class CmdDataRequest extends AbstractCommand {
 				headSb.append("\t:shield: Export déclanché par un administrateur\n");
 				headSb.append("\tDate: " + new Date().toString() + "\n\n");
 				privChan.sendMessage(headSb.toString()).queue();
-				this.knb.getTableInstances()
+				this.knb.getTableKdecoleInstances()
 						.filter(r.hashMap("adderId", user.getId()))
 						.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 						.forEach(ui -> {

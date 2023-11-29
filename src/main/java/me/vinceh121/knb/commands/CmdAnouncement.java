@@ -22,7 +22,7 @@ public class CmdAnouncement extends AbstractCommand {
 		final String text = ":loudspeaker: Annonce :loudspeaker:\n" + String.join(" ", ctx.getArgs());
 		CmdAnouncement.LOG.info("Making announcement {}", text);
 
-		this.knb.getTableInstances().hasFields("adderId").run(this.knb.getDbCon(), KdecoleUserInstance.class).forEach(ui -> {
+		this.knb.getTableKdecoleInstances().hasFields("adderId").run(this.knb.getDbCon(), KdecoleUserInstance.class).forEach(ui -> {
 			try {
 				final User user = this.knb.getJda().retrieveUserById(ui.getAdderId()).complete();
 				final PrivateChannel priv = user.openPrivateChannel().complete();

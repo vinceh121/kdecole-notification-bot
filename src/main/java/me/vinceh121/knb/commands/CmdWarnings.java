@@ -14,7 +14,7 @@ public class CmdWarnings extends AbstractCommand {
 
 	@Override
 	protected void executeSync(final CommandContext ctx) {
-		this.knb.getTableInstances()
+		this.knb.getTableKdecoleInstances()
 				.get(ctx.getUserInstance().getId())
 				.update(r.hashMap("showWarnings", true))
 				.run(this.knb.getDbCon());

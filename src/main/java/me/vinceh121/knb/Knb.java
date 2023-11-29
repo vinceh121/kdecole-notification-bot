@@ -393,7 +393,11 @@ public class Knb {
 		return dbCon;
 	}
 
-	public Table getTableInstances() {
+	public Table getTableKdecoleInstances() {
 		return tableKdecoleInstances;
+	}
+
+	public Table getTableSkolengoInstances() {
+		return tableSkolengoInstances;
 	}
 }

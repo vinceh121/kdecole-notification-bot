@@ -42,7 +42,7 @@ public class CmdRelay extends AbstractCommand {
 		} else {
 			ctx.getUserInstance().getRelays().add(type);
 		}
-		this.knb.getTableInstances()
+		this.knb.getTableKdecoleInstances()
 				.get(ctx.getUserInstance().getId())
 				.update(r.hashMap("relays", ctx.getUserInstance().getRelays()))
 				.run(this.knb.getDbCon());

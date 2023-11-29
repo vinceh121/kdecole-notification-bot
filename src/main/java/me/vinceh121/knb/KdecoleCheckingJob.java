@@ -78,7 +78,7 @@ public class KdecoleCheckingJob implements Job {
 					this.processHomework(knb, kdecole, info, u);
 				}
 				u.setLastCheck(new Date());
-				knb.getTableInstances()
+				knb.getTableKdecoleInstances()
 						.get(u.getId())
 						.update(r.hashMap("lastCheck", new Date().getTime()))
 						.run(knb.getDbCon());
@@ -256,7 +256,7 @@ public class KdecoleCheckingJob implements Job {
 					+ "\n\n"
 					+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
 					.queue();
-			knb.getTableInstances().get(ui.getId()).update(r.hashMap("showWarnings", false)).run(knb.getDbCon());
+			knb.getTableKdecoleInstances().get(ui.getId()).update(r.hashMap("showWarnings", false)).run(knb.getDbCon());
 			ui.setShowWarnings(false);
 		}
 	}

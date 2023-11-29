@@ -34,7 +34,7 @@ public class CmdAuth extends AbstractCommand {
 			return;
 		}
 
-		KdecoleUserInstance ui = this.knb.getTableInstances()
+		KdecoleUserInstance ui = this.knb.getTableKdecoleInstances()
 				.filter(r.hashMap("channelId", chan.getId()))
 				.run(this.knb.getDbCon(), KdecoleUserInstance.class)
 				.first();

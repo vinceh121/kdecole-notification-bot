@@ -4,6 +4,7 @@ public class SkolengoUserInstance extends AbstractUserInstance {
 	private OIDCTokenSet tokens;
 	private String emsCode;
 	private String schoolId;
+	private String tokenEndpoint;
 
 	public OIDCTokenSet getTokens() {
 		return tokens;
@@ -27,6 +28,14 @@ public class SkolengoUserInstance extends AbstractUserInstance {
 
 	public void setSchoolId(String schoolId) {
 		this.schoolId = schoolId;
+	}
+
+	public String getTokenEndpoint() {
+		return tokenEndpoint;
+	}
+
+	public void setTokenEndpoint(String tokenEndpoint) {
+		this.tokenEndpoint = tokenEndpoint;
 	}
 
 	@Override

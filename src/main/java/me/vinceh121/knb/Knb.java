@@ -77,7 +77,7 @@ public class Knb {
 	private final CommandListener regisListener;
 	private final Connection dbCon;
 	private final Table tableKdecoleInstances, tableSkolengoInstances;
-	private final JobDetail kdecoleJob, skolengoJob;
+	private final JobDetail kdecoleJob, skolengoJob, skolengoRefreshJob;
 	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
 	private final MetricRegistry metricRegistry = new MetricRegistry();
 	private final JedisPool redisPool;
@@ -155,6 +155,9 @@ public class Knb {
 				.ofType(SkolengoCheckingJob.class)
 				.withIdentity("skolengo-checker", "jobs")
 				.build();
+
+		this.skolengoRefreshJob
+				= JobBuilder.newJob().ofType(SkolengoRefreshJob.class).withIdentity("skolengo-refresh", "jobs").build();
 	}
 
 	private void start() {
@@ -179,9 +182,19 @@ public class Knb {
 
 		this.skolengoJob.getJobDataMap().put("knb", this);
 
+		final Trigger skolengoRefreshTrig = TriggerBuilder.newTrigger()
+				.forJob(this.skolengoRefreshJob)
+				.startNow()
+				.withIdentity("skolengo-refresh-trig")
+				.withSchedule(SimpleScheduleBuilder.repeatHourlyForever(12))
+				.build();
+
+		this.skolengoRefreshJob.getJobDataMap().put("knb", this);
+
 		try {
 			this.scheduler.scheduleJob(this.kdecoleJob, kdecoleTrig);
 			this.scheduler.scheduleJob(this.skolengoJob, skolengoTrig);
+			this.scheduler.scheduleJob(this.skolengoRefreshJob, skolengoRefreshTrig);
 		} catch (final SchedulerException e) {
 			Knb.LOG.error("Could not schedule checking job", e);
 			System.exit(-5);

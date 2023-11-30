@@ -266,7 +266,6 @@ public class SkolengoCheckingJob implements Job {
 		try {
 			hws = sko.fetchHomeworkAssignments(LocalDate.now().minusWeeks(1), LocalDate.now().plusWeeks(1))
 					.stream()
-					.filter(hw -> hw.getDueDate().isAfter(LocalDate.now()))
 					.filter(hw -> redis.exists(HOMEWORK_REDIS_PREFIX + hw.getId()))
 					.collect(Collectors.toList());
 		} catch (final Exception e) {
@@ -286,13 +285,14 @@ public class SkolengoCheckingJob implements Job {
 			redis.set(HOMEWORK_REDIS_PREFIX + hw.getId(), "",
 					SetParams.setParams()
 							.nx()
-							.exAt(hw.getDueDate().plusDays(1).atStartOfDay().toEpochSecond(ZoneOffset.UTC)));
+							.exAt(LocalDate.now().plusWeeks(4).atStartOfDay().toEpochSecond(ZoneOffset.UTC)));
 		}
 
 		final String estabName = info.getSchool().getName();
 
 		final LocalDate oldest
-				= Collections.min(hws, (o1, o2) -> o1.getDueDate().compareTo(o2.getDueDate())).getDueDate();
+				= Collections.min(hws, (o1, o2) -> o1.getDueDate() == null || o2.getDueDate() == null ? -1
+						: o1.getDueDate().compareTo(o2.getDueDate())).getDueDate();
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 

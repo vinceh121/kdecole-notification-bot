@@ -266,7 +266,7 @@ public class SkolengoCheckingJob implements Job {
 		try {
 			hws = sko.fetchHomeworkAssignments(LocalDate.now().minusWeeks(1), LocalDate.now().plusWeeks(1))
 					.stream()
-					.filter(hw -> redis.exists(HOMEWORK_REDIS_PREFIX + hw.getId()))
+					.filter(hw -> !redis.exists(HOMEWORK_REDIS_PREFIX + hw.getId()))
 					.collect(Collectors.toList());
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG

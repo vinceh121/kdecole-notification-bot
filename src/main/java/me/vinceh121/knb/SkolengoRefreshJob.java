@@ -14,6 +14,8 @@ import com.nimbusds.oauth2.sdk.RefreshTokenGrant;
 import com.nimbusds.oauth2.sdk.Scope;
 import com.nimbusds.oauth2.sdk.TokenRequest;
 import com.nimbusds.oauth2.sdk.TokenResponse;
+import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
+import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.RefreshToken;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
@@ -33,9 +35,9 @@ public class SkolengoRefreshJob implements Job {
 		knb.getAllValidSkolengoInstances().forEach(ui -> {
 			try {
 				TokenRequest req = new TokenRequest(URI.create(ui.getTokenEndpoint()),
-						new ClientID(SkolengoConstants.OIDC_CLIENT_ID),
-						new RefreshTokenGrant(new RefreshToken(ui.getTokens().getRefreshToken())), new Scope("openid"),
-						null, null, null, null);
+						new ClientSecretBasic(new ClientID(SkolengoConstants.OIDC_CLIENT_ID),
+								new Secret(SkolengoConstants.OIDC_CLIENT_SECRET)),
+						new RefreshTokenGrant(new RefreshToken(ui.getTokens().getRefreshToken())), new Scope("openid"));
 
 				TokenResponse res = OIDCTokenResponseParser.parse(req.toHTTPRequest().send());
 

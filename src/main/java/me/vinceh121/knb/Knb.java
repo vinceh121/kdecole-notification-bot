@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,6 +64,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import redis.clients.jedis.JedisPool;
 
 public class Knb {
 	private static final Logger LOG = LogManager.getLogger(Knb.class);
@@ -78,6 +80,7 @@ public class Knb {
 	private final JobDetail kdecoleJob, skolengoJob;
 	private final Map<String, AbstractCommand> cmdMap = new HashMap<>();
 	private final MetricRegistry metricRegistry = new MetricRegistry();
+	private final JedisPool redisPool;
 
 	public static void main(final String[] args) {
 		final Knb knb = new Knb();
@@ -114,6 +117,10 @@ public class Knb {
 		this.dbCon = r.connection(this.config.getDbUrl()).connect();
 		this.tableKdecoleInstances = r.table("kdecoleInstances");
 		this.tableSkolengoInstances = r.table("skolengoInstances");
+
+		Knb.LOG.info("Connecting to Redis");
+
+		this.redisPool = new JedisPool(URI.create(this.config.getRedisUri()));
 
 		Knb.LOG.info("Connecting to Discord");
 
@@ -391,6 +398,10 @@ public class Knb {
 
 	public Connection getDbCon() {
 		return dbCon;
+	}
+
+	public JedisPool getRedisPool() {
+		return redisPool;
 	}
 
 	public Table getTableKdecoleInstances() {

@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Config {
-	private String token, dbUrl, feedbackChannelId;
+	private String token, dbUrl, feedbackChannelId, redisUri;
 	private int delay;
 	private Collection<Long> admins;
 	private MetricConfig metrics;
@@ -48,6 +48,14 @@ public class Config {
 
 	public void setFeedbackChannelId(final String feedbackChannelId) {
 		this.feedbackChannelId = feedbackChannelId;
+	}
+
+	public String getRedisUri() {
+		return redisUri;
+	}
+
+	public void setRedisUri(String redisUri) {
+		this.redisUri = redisUri;
 	}
 
 	@JsonProperty(required = false)

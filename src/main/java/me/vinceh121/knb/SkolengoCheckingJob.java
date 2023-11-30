@@ -5,7 +5,6 @@ import static com.rethinkdb.RethinkDB.r;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -37,9 +36,12 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.SetParams;
 
 public class SkolengoCheckingJob implements Job {
 	public static final int COLOR_ARTICLE = 0xff7b1c;
+	public static final String HOMEWORK_REDIS_PREFIX = "skolengo.homework.";
 	private static final Logger LOG = LogManager.getLogger(SkolengoCheckingJob.class);
 	private Counter metricNewsCount, metricEmailsCount, metricGradesCount;
 	private Timer metricProcessTime;
@@ -83,14 +85,19 @@ public class SkolengoCheckingJob implements Job {
 					if (u.getRelays().contains(RelayType.ARTICLES)) {
 						this.processArticles(knb, sko, info, u);
 					}
+
 					if (u.getRelays().contains(RelayType.EMAILS)) {
 						this.processEmails(knb, sko, info, u);
 					}
+
 					if (u.getRelays().contains(RelayType.NOTES)) {
 						this.processGrades(knb, sko, info, u);
 					}
+
 					if (u.getRelays().contains(RelayType.DEVOIRS)) {
-						this.processHomework(knb, sko, info, u);
+						try (Jedis jedis = knb.getRedisPool().getResource()) {
+							this.processHomework(knb, sko, info, u, jedis);
+						}
 					}
 
 					u.setLastCheck(new Date());
@@ -252,16 +259,16 @@ public class SkolengoCheckingJob implements Job {
 	}
 
 	private void processHomework(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
-			final SkolengoUserInstance ui) {
+			final SkolengoUserInstance ui, final Jedis redis) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
 		final List<Homework> hws;
 
 		try {
-			// FIXME
-			hws = sko.fetchHomeworkAssignments(
-					LocalDate
-							.from(ui.getLastCheck().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()),
-					LocalDate.now()).stream().collect(Collectors.toList());
+			hws = sko.fetchHomeworkAssignments(LocalDate.now().minusWeeks(1), LocalDate.now().plusWeeks(1))
+					.stream()
+					.filter(hw -> hw.getDueDate().isAfter(LocalDate.now()))
+					.filter(hw -> redis.exists(HOMEWORK_REDIS_PREFIX + hw.getId()))
+					.collect(Collectors.toList());
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG
 					.error(new FormattedMessage("Error while getting homework for instance {}", ui.getId()), e);
@@ -275,16 +282,24 @@ public class SkolengoCheckingJob implements Job {
 			return;
 		}
 
+		for (final Homework hw : hws) {
+			redis.set(HOMEWORK_REDIS_PREFIX + hw.getId(), "",
+					SetParams.setParams()
+							.nx()
+							.exAt(hw.getDueDate().plusDays(1).atStartOfDay().toEpochSecond(ZoneOffset.UTC)));
+		}
+
 		final String estabName = info.getSchool().getName();
 
-		final Date oldest = ui.getLastCheck(); // FIXME
+		final LocalDate oldest
+				= Collections.min(hws, (o1, o2) -> o1.getDueDate().compareTo(o2.getDueDate())).getDueDate();
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
 
 		embBuild.setAuthor("Kdecole", "https://github.com/vinceh121/kdecole-notification-bot",
 				"https://cdn.discordapp.com/avatars/691655008076300339/4f492132883b1aa4f5984fe2eab9fa09.png");
 		embBuild.setColor(SkolengoCheckingJob.COLOR_ARTICLE);
-		embBuild.setTimestamp(oldest.toInstant());
+		embBuild.setTimestamp(oldest);
 		embBuild.setTitle("Nouveaux devoirs");
 		embBuild.setFooter(estabName);
 

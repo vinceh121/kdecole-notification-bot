@@ -261,12 +261,11 @@ public class SkolengoCheckingJob implements Job {
 	private void processHomework(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
 			final SkolengoUserInstance ui, final Jedis redis) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
-		final List<Homework> hws;
+		final List<Homework> allHws;
 
 		try {
-			hws = sko.fetchHomeworkAssignments(LocalDate.now().minusWeeks(1), LocalDate.now().plusWeeks(1))
+			allHws = sko.fetchHomeworkAssignments(LocalDate.now().minusWeeks(1), LocalDate.now().plusWeeks(1))
 					.stream()
-					.filter(hw -> !redis.exists(HOMEWORK_REDIS_PREFIX + hw.getId()))
 					.collect(Collectors.toList());
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG
@@ -275,17 +274,21 @@ public class SkolengoCheckingJob implements Job {
 			return;
 		}
 
-		this.metricNewsCount.inc(hws.size());
-
-		if (hws.size() == 0) {
-			return;
-		}
-
-		for (final Homework hw : hws) {
+		for (final Homework hw : allHws) {
 			redis.set(HOMEWORK_REDIS_PREFIX + hw.getId(), "",
 					SetParams.setParams()
 							.nx()
 							.exAt(LocalDate.now().plusWeeks(4).atStartOfDay().toEpochSecond(ZoneOffset.UTC)));
+		}
+
+		final List<Homework> hws = allHws.stream()
+				.filter(hw -> !redis.exists(HOMEWORK_REDIS_PREFIX + hw.getId()))
+				.collect(Collectors.toList());
+
+		this.metricNewsCount.inc(hws.size());
+
+		if (hws.size() == 0) {
+			return;
 		}
 
 		final String estabName = info.getSchool().getName();

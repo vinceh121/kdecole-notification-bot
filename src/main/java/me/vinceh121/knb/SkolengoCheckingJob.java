@@ -132,7 +132,7 @@ public class SkolengoCheckingJob implements Job {
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG
 					.error(new FormattedMessage("Error while getting grades for instance {}", ui.getId()), e);
-			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouvelles notes: " + e);
+			this.sendWarning(knb, chan, ui, "Une erreur est survenue en récupérant les nouvelles notes: " + e);
 			return;
 		}
 
@@ -270,7 +270,7 @@ public class SkolengoCheckingJob implements Job {
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG
 					.error(new FormattedMessage("Error while getting homework for instance {}", ui.getId()), e);
-			this.sendWarning(knb, chan, ui, "Une érreur est survenue en récupérant les nouveaux devoirs: " + e);
+			this.sendWarning(knb, chan, ui, "Une erreur est survenue en récupérant les nouveaux devoirs: " + e);
 			return;
 		}
 
@@ -319,7 +319,7 @@ public class SkolengoCheckingJob implements Job {
 		if (ui.isShowWarnings() || ui.isAlwaysShowWarnings()) {
 			chan.sendMessage(text
 					+ "\n\n"
-					+ "Les prochaines érreures ne sont pas affichés; pour les réactivier utiliser la commande `warnings`")
+					+ "Les prochaines erreures ne sont pas affichées ; pour les réactiver utilisez la commande `warnings`")
 					.queue();
 			knb.getTableKdecoleInstances().get(ui.getId()).update(r.hashMap("showWarnings", false)).run(knb.getDbCon());
 			ui.setShowWarnings(false);

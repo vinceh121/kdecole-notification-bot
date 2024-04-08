@@ -4,7 +4,6 @@ import static com.rethinkdb.RethinkDB.r;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -29,7 +28,7 @@ import me.vinceh121.jkdecole.entities.messages.CommunicationPreview;
 import me.vinceh121.jskolengo.JSkolengo;
 import me.vinceh121.jskolengo.entities.StudentUserInfo;
 import me.vinceh121.jskolengo.entities.agenda.Homework;
-import me.vinceh121.jskolengo.entities.evaluation.EvaluationDetail;
+import me.vinceh121.jskolengo.entities.evaluation.Evaluation;
 import me.vinceh121.jskolengo.entities.info.News;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -117,7 +116,7 @@ public class SkolengoCheckingJob implements Job {
 	private void processGrades(final Knb knb, final JSkolengo sko, final StudentUserInfo info,
 			final SkolengoUserInstance ui) {
 		final TextChannel chan = knb.getJda().getTextChannelById(ui.getChannelId());
-		final List<EvaluationDetail> grades;
+		final List<Evaluation> grades;
 
 		try {
 			grades = sko.fetchEvaluationsSetting()
@@ -126,8 +125,7 @@ public class SkolengoCheckingJob implements Job {
 					.flatMap(period -> sko.fetchEvaluations(period.getId()).stream())
 					.flatMap(eval -> eval.getEvaluations().stream())
 					.filter(detail -> detail.getDateTime()
-							.toInstant(ZoneOffset.UTC)
-							.isAfter(ui.getLastCheck().toInstant()))
+							.isAfter(ui.getLastCheck().toInstant().atZone(detail.getDateTime().getZone())))
 					.collect(Collectors.toList());
 		} catch (final Exception e) {
 			SkolengoCheckingJob.LOG
@@ -144,7 +142,7 @@ public class SkolengoCheckingJob implements Job {
 
 		final String estabName = info.getSchool().getName();
 
-		final LocalDateTime oldest
+		final ZonedDateTime oldest
 				= Collections.min(grades, (o1, o2) -> o1.getDateTime().compareTo(o2.getDateTime())).getDateTime();
 
 		final EmbedBuilder embBuild = new EmbedBuilder();
@@ -156,7 +154,7 @@ public class SkolengoCheckingJob implements Job {
 		embBuild.setTitle("Nouvelles notes");
 		embBuild.setFooter(estabName);
 
-		for (final EvaluationDetail n : grades) {
+		for (final Evaluation n : grades) {
 			final Field f = new Field(n.getTopic() + " : " + n.getTitle(),
 					n.getEvaluationResult().getMark() + "/" + n.getScale() + "\nCoef: " + n.getCoefficient(), true);
 			embBuild.addField(f);
